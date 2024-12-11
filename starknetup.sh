@@ -13,17 +13,22 @@ main() {
     determine_ansi_escapes_valid
 
     assert_dependencies
+
     assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
     assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
-    install_asdf_plugin "scarb"
+
+	install_asdf_plugin "scarb"
     install_asdf_plugin "starknet-foundry"
     install_latest_version "scarb"
+
     # Reinstall to ensure latest version of USC is installed
     uninstall_latest_version "starknet-foundry"
     install_latest_version "starknet-foundry"
+
     set_global_version "scarb"
     set_global_version "starknet-foundry"
-    say "Starknet tools installed successfully."
+    
+	say "Starknet tools installed successfully."
 }
 
 determine_ansi_escapes_valid() {
