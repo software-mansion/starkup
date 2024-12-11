@@ -4,10 +4,13 @@
 set -eu
 
 ASDF_REPO="https://github.com/asdf-vm/asdf"
+SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
+STARKNET_FOUNDRY_UNINSTALL_DOCS=""
 
 main() {
     assert_dependencies
-    assert_not_installed "scarb" "starknet-foundry"
+    assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
+    assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
     install_asdf_plugins "scarb" "starknet-foundry"
     install_latest_versions "scarb" "starknet-foundry"
     set_global_versions "scarb" "starknet-foundry"
@@ -24,12 +27,14 @@ assert_dependencies() {
 }
 
 assert_not_installed() {
-    for tool in "$@"; do
+    local tool="$1"
+    local uninstall_docs_url="$2"
+
+    if ! asdf which "$tool" > /dev/null 2>&1; then
         if check_cmd "$tool"; then
-            warn "$tool is already installed. Please uninstall it before running this script."
-            warn "For more information, refer to the documentation: https://docs.starknet.io/documentation/"
+            err "$tool is already installed outside of asdf. Please uninstall it and re-run this script again. For more information, refer to the documentation: $uninstall_docs_url"
         fi
-    done
+    fi
 }
 
 install_asdf_plugins() {
