@@ -5,13 +5,14 @@ set -eu
 
 ASDF_REPO="https://github.com/asdf-vm/asdf"
 SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
-STARKNET_FOUNDRY_UNINSTALL_DOCS=""
+STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 
 main() {
     assert_dependencies
     assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
     assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
-    install_asdf_plugins "scarb" "starknet-foundry"
+    install_asdf_plugin "scarb"
+    install_asdf_plugin "starknet-foundry"
     install_latest_versions "scarb" "starknet-foundry"
     set_global_versions "scarb" "starknet-foundry"
     say "Starknet tools installed successfully."
@@ -37,12 +38,13 @@ assert_not_installed() {
     fi
 }
 
-install_asdf_plugins() {
-    for plugin in "$@"; do
-        if ! asdf plugin list | grep -q "$plugin"; then
-            ensure asdf plugin add "$plugin"
-        fi
-    done
+install_asdf_plugin() {
+    local plugin="$1"
+    if asdf plugin list | grep -q "$plugin"; then
+        ensure asdf plugin update "$plugin"
+    else
+        ensure asdf plugin add "$plugin"
+    fi
 }
 
 install_latest_versions() {
