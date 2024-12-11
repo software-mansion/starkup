@@ -17,7 +17,8 @@ main() {
     assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
     install_asdf_plugin "scarb"
     install_asdf_plugin "starknet-foundry"
-    install_latest_versions "scarb" "starknet-foundry"
+    install_latest_version "scarb"
+    install_latest_version "starknet-foundry"
     set_global_versions "scarb" "starknet-foundry"
     say "Starknet tools installed successfully."
 }
@@ -63,10 +64,9 @@ install_asdf_plugin() {
     fi
 }
 
-install_latest_versions() {
-    for tool in "$@"; do
-        ensure asdf install "$tool" latest
-    done
+install_latest_version() {
+    local tool="$1"
+    ensure asdf install "$tool" latest
 }
 
 set_global_versions() {
