@@ -7,7 +7,11 @@ ASDF_REPO="https://github.com/asdf-vm/asdf"
 SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 
+ANSI_ESCAPES_ARE_VALID=false
+
 main() {
+    determine_ansi_escapes_valid
+
     assert_dependencies
     assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
     assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
@@ -16,6 +20,18 @@ main() {
     install_latest_versions "scarb" "starknet-foundry"
     set_global_versions "scarb" "starknet-foundry"
     say "Starknet tools installed successfully."
+}
+
+determine_ansi_escapes_valid() {
+    if [ -t 2 ]; then
+        if [ "${TERM+set}" = 'set' ]; then
+            case "$TERM" in
+                xterm*|rxvt*|urxvt*|linux*|vt*)
+                    ANSI_ESCAPES_ARE_VALID=true
+                ;;
+            esac
+        fi
+    fi
 }
 
 assert_dependencies() {
@@ -60,15 +76,27 @@ set_global_versions() {
 }
 
 say() {
-    printf 'starknetup: %s\n' "$1"
+    if $ANSI_ESCAPES_ARE_VALID; then
+        printf "\033[1mstarknetup:\033[0m %s\n" "$1"
+    else
+        printf "starknetup: %s\n" "$1"
+    fi
 }
 
 warn() {
-    say "Warning: $1" >&2
+    if $ANSI_ESCAPES_ARE_VALID; then
+        printf "\033[1mstarknetup: warn:\033[0m %s\n" "$1" >&2
+    else
+        printf "starknetup: warn: %s\n" "$1" >&2
+    fi
 }
 
 err() {
-    say "$1" >&2
+    if $ANSI_ESCAPES_ARE_VALID; then
+        printf "\033[1mstarknetup: error:\033[0m %s\n" "$1" >&2
+    else
+        printf "starknetup: error: %s\n" "$1" >&2
+    fi
     exit 1
 }
 
