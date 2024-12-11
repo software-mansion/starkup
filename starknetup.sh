@@ -19,7 +19,8 @@ main() {
     install_asdf_plugin "starknet-foundry"
     install_latest_version "scarb"
     install_latest_version "starknet-foundry"
-    set_global_versions "scarb" "starknet-foundry"
+    set_global_version "scarb"
+    set_global_version "starknet-foundry"
     say "Starknet tools installed successfully."
 }
 
@@ -69,10 +70,9 @@ install_latest_version() {
     ensure asdf install "$tool" latest
 }
 
-set_global_versions() {
-    for tool in "$@"; do
-        ensure asdf global "$tool" latest
-    done
+set_global_version() {
+    local tool="$1"
+    ensure asdf global "$tool" latest
 }
 
 say() {
