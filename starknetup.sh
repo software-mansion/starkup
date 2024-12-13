@@ -45,12 +45,12 @@ main() {
 
     assert_dependencies
     assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
-    install_asdf_plugin "scarb"
+    install_latest_asdf_plugin "scarb"
     install_latest_version "scarb"
     set_global_version "scarb"
 
     assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
-    install_asdf_plugin "starknet-foundry"
+    install_latest_asdf_plugin "starknet-foundry"
     uninstall_latest_version "starknet-foundry"
     install_latest_version "starknet-foundry"
     set_global_version "starknet-foundry"
@@ -89,7 +89,7 @@ assert_not_installed() {
     fi
 }
 
-install_asdf_plugin() {
+install_latest_asdf_plugin() {
     local plugin="$1"
     if asdf plugin list | grep -q "$plugin"; then
         ensure asdf plugin update "$plugin"
