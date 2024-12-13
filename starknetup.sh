@@ -91,7 +91,10 @@ uninstall_latest_version() {
     local tool="$1"
     local latest_version
     latest_version=$(asdf latest "$tool")
-    ensure asdf uninstall "$tool" "$latest_version"
+    
+    if asdf list "$tool" "^${latest_version}$" >/dev/null 2>&1; then
+        ensure asdf uninstall "$tool" "$latest_version"
+    fi
 }
 
 set_global_version() {
