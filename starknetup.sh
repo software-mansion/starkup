@@ -13,7 +13,7 @@ LOCAL_BIN_ESCAPED="\$HOME/.local/bin"
 
 usage() {
     cat <<EOF
-The installer for starknetup
+The installer for Starknet tools. Installs the latest versions of Scarb, Starknet Foundry and Universal Sierra Compiler using asdf.
 
 Usage: $0 [OPTIONS]
 
