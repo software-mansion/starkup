@@ -25,8 +25,6 @@ main() {
     uninstall_latest_version "starknet-foundry"
     install_latest_version "starknet-foundry"
     set_global_version "starknet-foundry"
-    
-	say "Starknet tools installed successfully."
 }
 
 determine_ansi_escapes_valid() {
@@ -91,14 +89,6 @@ say() {
         printf "\033[1mstarknetup:\033[0m %s\n" "$1"
     else
         printf "starknetup: %s\n" "$1"
-    fi
-}
-
-warn() {
-    if $ANSI_ESCAPES_ARE_VALID; then
-        printf "\033[1mstarknetup: warn:\033[0m %s\n" "$1" >&2
-    else
-        printf "starknetup: warn: %s\n" "$1" >&2
     fi
 }
 
