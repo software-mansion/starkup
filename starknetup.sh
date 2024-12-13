@@ -3,7 +3,7 @@
 
 set -eu
 
-ASDF_REPO="https://github.com/asdf-vm/asdf"
+ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
@@ -151,7 +151,7 @@ install_asdf_interactively() {
             _pref_shell=bash
             ;;
         *)
-            err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
+            err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
             ;;
     esac
 
@@ -178,11 +178,11 @@ install_asdf_interactively() {
                 exit 0
                 ;;
             * )
-                err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
+                err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
                 ;;
         esac
     else
-        err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
+        err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
     fi
 }
 
