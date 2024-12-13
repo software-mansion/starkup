@@ -8,6 +8,9 @@ SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
 
+LOCAL_BIN="${HOME}/.local/bin"
+LOCAL_BIN_ESCAPED="\$HOME/.local/bin"
+
 usage() {
     cat <<EOF
 The installer for starknetup
@@ -58,7 +61,7 @@ assert_dependencies() {
     need_cmd curl
     need_cmd git
     if ! check_cmd asdf; then
-        err "asdf-vm is required. Please refer to ${ASDF_REPO} for installation instructions."
+        install_asdf_interactively
     fi
 }
 
@@ -123,6 +126,52 @@ check_cmd() {
 
 ensure() {
     if ! "$@"; then err "command failed: $*"; fi
+}
+
+install_asdf_interactively() {
+    local _profile
+    local _pref_shell
+    case ${SHELL:-""} in
+        */zsh)
+            _profile=$HOME/.zshrc
+            _pref_shell=zsh
+            ;;
+        */ash)
+            _profile=$HOME/.profile
+            _pref_shell=ash
+            ;;
+        */bash)
+            _profile=$HOME/.bashrc
+            _pref_shell=bash
+            ;;
+        */fish)
+            _profile=$HOME/.config/fish/config.fish
+            _pref_shell=fish
+            ;;
+        *)
+            err "could not detect shell, manually add '${LOCAL_BIN_ESCAPED}' to your PATH."
+            ;;
+    esac
+
+    if [ -n "$_profile" ]; then
+        printf "asdf-vm is required. Do you want to install it now? (y/N): "
+        read -r answer
+        case $answer in
+            [Yy]* )
+                printf "Installing asdf-vm...\n"
+                git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.11.3
+                echo >>"$_profile" && echo ". \$HOME/.asdf/asdf.sh" >>"$_profile"
+                echo >>"$_profile" && echo ". \$HOME/.asdf/completions/asdf.bash" >>"$_profile"
+                printf "asdf-vm has been installed. Please restart your shell for the changes to take effect.\n"
+				exit 0
+                ;;
+            * )
+                err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
+                ;;
+        esac
+    else
+        err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
+    fi
 }
 
 main "$@" || exit 1
