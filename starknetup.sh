@@ -8,8 +8,6 @@ SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
 
-ANSI_ESCAPES_ARE_VALID=false
-
 usage() {
     cat <<EOF
 The installer for starknetup
@@ -24,8 +22,6 @@ EOF
 }
 
 main() {
-	determine_ansi_escapes_valid
-
     for arg in "$@"; do
         case "$arg" in
             -h|--help)
@@ -56,18 +52,6 @@ main() {
     set_global_version "starknet-foundry"
 
     say "Installation complete"
-}
-
-determine_ansi_escapes_valid() {
-    if [ -t 2 ]; then
-        if [ "${TERM+set}" = 'set' ]; then
-            case "$TERM" in
-                xterm*|rxvt*|urxvt*|linux*|vt*)
-                    ANSI_ESCAPES_ARE_VALID=true
-                ;;
-            esac
-        fi
-    fi
 }
 
 assert_dependencies() {
@@ -116,19 +100,11 @@ set_global_version() {
 }
 
 say() {
-    if $ANSI_ESCAPES_ARE_VALID; then
-        printf "\033[1mstarknetup:\033[0m %s\n" "$1"
-    else
-        printf "starknetup: %s\n" "$1"
-    fi
+    printf "starknetup: %s\n" "$1"
 }
 
 err() {
-    if $ANSI_ESCAPES_ARE_VALID; then
-        printf "\033[1mstarknetup: error:\033[0m %s\n" "$1" >&2
-    else
-        printf "starknetup: error: %s\n" "$1" >&2
-    fi
+    say "$1" >&2
     exit 1
 }
 
