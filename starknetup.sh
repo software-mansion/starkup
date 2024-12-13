@@ -25,6 +25,8 @@ main() {
     uninstall_latest_version "starknet-foundry"
     install_latest_version "starknet-foundry"
     set_global_version "starknet-foundry"
+
+	say "Installation complete"
 }
 
 determine_ansi_escapes_valid() {
