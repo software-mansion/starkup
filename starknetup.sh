@@ -138,22 +138,6 @@ install_asdf_interactively() {
             _profile=$HOME/.zshrc
             _pref_shell=zsh
             ;;
-        */fish)
-            _profile=$HOME/.config/fish/config.fish
-            _pref_shell=fish
-            ;;
-        */elvish)
-            _profile=$HOME/.config/elvish/rc.elv
-            _pref_shell=elvish
-            ;;
-        */pwsh)
-            _profile=$HOME/.config/powershell/profile.ps1
-            _pref_shell=pwsh
-            ;;
-        */nu)
-            _profile=$HOME/.config/nushell/config.nu
-            _pref_shell=nu
-            ;;
         */ash)
             _profile=$HOME/.profile
             _pref_shell=ash
@@ -167,7 +151,7 @@ install_asdf_interactively() {
             _pref_shell=bash
             ;;
         *)
-            err "could not detect shell, manually add '${LOCAL_BIN_ESCAPED}' to your PATH."
+            err "asdf-vm is required. Please install it manually and re-run this script. Refer to ${ASDF_REPO} for installation instructions."
             ;;
     esac
 
@@ -187,22 +171,6 @@ install_asdf_interactively() {
                     zsh|bash|ash)
                         echo >>"$_profile" && echo ". ${_asdf_dir}/asdf.sh" >>"$_profile"
                         echo >>"$_profile" && echo ". ${_asdf_dir}/completions/asdf.bash" >>"$_profile"
-                        ;;
-                    fish)
-                        echo >>"$_profile" && echo "source ${_asdf_dir}/asdf.fish" >>"$_profile"
-                        mkdir -p "$HOME/.config/fish/completions"
-                        ln -s "${_asdf_dir}/completions/asdf.fish" "$HOME/.config/fish/completions"
-                        ;;
-                    elvish)
-                        echo >>"$_profile" && echo "use asdf _asdf; var asdf~ = $_asdf:asdf~" >>"$_profile"
-                        echo >>"$_profile" && echo "set edit:completion:arg-completer[asdf] = $_asdf:arg-completer~" >>"$_profile"
-                        ;;
-                    pwsh)
-                        echo >>"$_profile" && echo ". '${_asdf_dir}/asdf.ps1'" >>"$_profile"
-                        ;;
-                    nu)
-                        echo >>"$_profile" && echo "\$env.ASDF_DIR = '${_asdf_dir}'" >>"$_profile"
-                        echo >>"$_profile" && echo "source '${_asdf_dir}/asdf.nu'" >>"$_profile"
                         ;;
                 esac
 
