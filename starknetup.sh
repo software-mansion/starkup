@@ -8,8 +8,6 @@ SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
 
-LOCAL_BIN="${HOME}/.local/bin"
-LOCAL_BIN_ESCAPED="\$HOME/.local/bin"
 
 usage() {
     cat <<EOF
@@ -170,11 +168,10 @@ install_asdf_interactively() {
                 case $_pref_shell in
                     zsh|bash|ash)
                         echo >>"$_profile" && echo ". ${_asdf_dir}/asdf.sh" >>"$_profile"
-                        echo >>"$_profile" && echo ". ${_asdf_dir}/completions/asdf.bash" >>"$_profile"
                         ;;
                 esac
 
-                printf "asdf-vm has been installed. Please restart your shell for the changes to take effect.\n"
+                printf "asdf-vm has been installed. Run 'source ${_profile}' or start a new terminal session and re-run this script.\n"
                 exit 0
                 ;;
             * )
