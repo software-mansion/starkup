@@ -67,7 +67,7 @@ assert_not_installed() {
 
 	if ! asdf which "$tool" >/dev/null 2>&1; then
 		if check_cmd "$tool"; then
-			err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. Refer to $uninstall_docs_url"
+			err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. For uninstallation instructions, refer to $uninstall_docs_url"
 		fi
 	fi
 }
@@ -156,11 +156,11 @@ install_asdf_interactively() {
 			touch "$_profile"
 		fi
 
-		printf "asdf-vm is required. Do you want to install it now? (y/N): "
+		say "asdf-vm is required. Do you want to install it now? (y/N): "
 		read -r answer
 		case $answer in
 		[Yy]*)
-			printf "Installing asdf-vm...\n"
+			say "Installing asdf-vm...\n"
 			git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch v0.14.1
 
 			case $_pref_shell in
@@ -169,7 +169,7 @@ install_asdf_interactively() {
 				;;
 			esac
 
-			printf "asdf-vm has been installed. Run 'source %s' or start a new terminal session and re-run this script.\n" "$_profile"
+			say "asdf-vm has been installed. Run 'source ${_profile}' or start a new terminal session and re-run this script."
 			exit 0
 			;;
 		*)
