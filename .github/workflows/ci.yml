@@ -8,22 +8,72 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
+    name: test ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y curl git
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git
 
-    - name: Setup asdf
-      uses: asdf-vm/actions/setup@v3.0.2
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@v3.0.2
 
-    - name: Run starknetup
-      run: |
-        ./starknetup.sh
-        scarb --version
-        snforge --version
-        universal-sierra-compiler --version
+      - name: Fetch latest Scarb version from GitHub releases
+        id: scarb_version
+        shell: pwsh
+        run: |
+          $location = (Invoke-WebRequest -Uri "https://github.com/software-mansion/scarb/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
+          $latest_version = ($location -replace '^.*/v','')
+          echo "Latest Scarb version found is $latest_version"
+          echo "LATEST_SCARB_VERSION=$latest_version" >> $env:GITHUB_OUTPUT
+
+      - name: Fetch latest Starknet Foundry version from GitHub releases
+        id: foundry_version
+        shell: pwsh
+        run: |
+          $location = (Invoke-WebRequest -Uri "https://github.com/foundry-rs/starknet-foundry/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
+          $latest_version = ($location -replace '^.*/v','')
+          echo "Latest Starknet Foundry version found is $latest_version"
+          echo "LATEST_SNFOUNDRY_VERSION=$latest_version" >> $env:GITHUB_OUTPUT
+
+      - name: Fetch latest Universal Sierra Compiler version from GitHub releases
+        id: usc_version
+        shell: pwsh
+        run: |
+          $location = (Invoke-WebRequest -Uri "https://github.com/software-mansion/universal-sierra-compiler/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
+          $latest_version = ($location -replace '^.*/v','')
+          echo "Latest Universal Sierra Compiler version found is $latest_version"
+          echo "LATEST_USC_VERSION=$latest_version" >> $env:GITHUB_OUTPUT
+
+      - name: Run starknetup
+        run: ./starknetup.sh
+
+      - name: Check Scarb latest
+        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST_SCARB_VERSION }}"
+
+      - name: Check Starknet Foundry latest
+        run: snforge --version | grep "${{ steps.foundry_version.outputs.LATEST_SNFOUNDRY_VERSION }}"
+
+      - name: Check Universal Sierra Compiler latest
+        run: universal-sierra-compiler --version | grep "${{ steps.usc_version.outputs.LATEST_USC_VERSION }}"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck bin/* lib/*
+
+  shfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mfinelli/setup-shfmt@v3
+      - uses: actions/checkout@v4
+      - run: shfmt --diff .
