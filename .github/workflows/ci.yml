@@ -69,11 +69,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck bin/* lib/*
+      - run: shellcheck starknetup.sh
 
   shfmt:
     runs-on: ubuntu-latest
     steps:
       - uses: mfinelli/setup-shfmt@v3
       - uses: actions/checkout@v4
-      - run: shfmt --diff .
+      - run: shfmt --diff starknetup.sh
