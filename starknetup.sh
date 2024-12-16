@@ -129,7 +129,7 @@ ensure() {
 install_asdf_interactively() {
     local _profile
     local _pref_shell
-    local _asdf_dir="$HOME/.asdf"
+    local _asdf_path="$HOME/.asdf"
 
     case ${SHELL:-""} in
         */zsh)
@@ -163,11 +163,11 @@ install_asdf_interactively() {
         case $answer in
             [Yy]* )
                 printf "Installing asdf-vm...\n"
-                git clone https://github.com/asdf-vm/asdf.git "$_asdf_dir" --branch v0.14.1
+                git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch v0.14.1
 
                 case $_pref_shell in
                     zsh|bash|ash)
-                        echo >>"$_profile" && echo ". ${_asdf_dir}/asdf.sh" >>"$_profile"
+                        echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
                         ;;
                 esac
 
