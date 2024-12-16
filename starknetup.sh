@@ -46,6 +46,8 @@ main() {
 
 	assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
 	install_latest_asdf_plugin "starknet-foundry"
+
+	# Reinstall to ensure the latest version of USC is installed
 	uninstall_latest_version "starknet-foundry"
 	install_latest_version "starknet-foundry"
 	set_global_version "starknet-foundry"
@@ -67,7 +69,7 @@ assert_not_installed() {
 
 	if ! asdf which "$tool" >/dev/null 2>&1; then
 		if check_cmd "$tool"; then
-			err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. For uninstallation instructions, refer to $uninstall_docs_url"
+			err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. For uninstallation instructions, refer to $uninstall_docs_url."
 		fi
 	fi
 }
