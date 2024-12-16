@@ -42,7 +42,7 @@ main() {
 	assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
 	install_latest_asdf_plugin "scarb"
 	install_latest_version "scarb"
-	set_global_version "scarb"
+	set_global_latest_version "scarb"
 
 	assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
 	install_latest_asdf_plugin "starknet-foundry"
@@ -50,7 +50,7 @@ main() {
 	# Reinstall to ensure the latest version of USC is installed
 	uninstall_latest_version "starknet-foundry"
 	install_latest_version "starknet-foundry"
-	set_global_version "starknet-foundry"
+	set_global_latest_version "starknet-foundry"
 
 	say "Installation complete"
 }
@@ -98,7 +98,7 @@ uninstall_latest_version() {
 	fi
 }
 
-set_global_version() {
+set_global_latest_version() {
 	local tool="$1"
 	ensure asdf global "$tool" latest
 }
