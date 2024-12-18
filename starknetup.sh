@@ -7,6 +7,7 @@ ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
+DEFAULT_ASDF_VERSION ="v0.14.1"
 
 usage() {
 	cat <<EOF
@@ -162,8 +163,10 @@ install_asdf_interactively() {
 		read -r answer
 		case $answer in
 		[Yy]*)
-			say "Installing asdf-vm...\n"
-			git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch v0.14.1
+			latest_asdf_version=$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}') || latest_asdf_version="$DEFAULT_ASDF_VERSION"
+
+			say "Installing asdf-vm ${latest_asdf_version}...\n"
+			git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
 
 			case $_pref_shell in
 			zsh | bash | ash)
