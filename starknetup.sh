@@ -7,7 +7,7 @@ ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
 STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
 SCRIPT_VERSION="0.1.0"
-DEFAULT_ASDF_VERSION ="v0.14.1"
+DEFAULT_ASDF_VERSION="v0.14.1"
 
 usage() {
 	cat <<EOF
