@@ -53,7 +53,27 @@ main() {
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
 
-  say "Installation complete"
+  local shell_config completion_message
+  
+  case ${SHELL:-""} in
+  */zsh)
+    shell_config="$HOME/.zshrc"
+    completion_message="Run 'source ${shell_config}'"
+    ;;
+  */bash)
+    if [ "$(uname)" = "Darwin" ]; then
+      shell_config="$HOME/.bash_profile"
+    else
+      shell_config="$HOME/.bashrc"
+    fi
+    completion_message="Run 'source ${shell_config}'"
+    ;;
+  *)
+    completion_message="Source your shell configuration file"
+    ;;
+  esac
+
+  say "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
 }
 
 assert_dependencies() {
