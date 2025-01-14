@@ -54,7 +54,7 @@ main() {
   set_global_latest_version "starknet-foundry"
 
   local shell_config completion_message
-  
+
   case ${SHELL:-""} in
   */zsh)
     shell_config="$HOME/.zshrc"
