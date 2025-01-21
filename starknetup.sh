@@ -68,6 +68,10 @@ main() {
     fi
     completion_message="Run 'source ${shell_config}'"
     ;;
+  */sh)
+    shell_config="$HOME/.profile"
+    completion_message="Run '. ${shell_config}'"
+    ;;
   *)
     completion_message="Source your shell configuration file"
     ;;
@@ -157,9 +161,9 @@ install_asdf_interactively() {
     _profile=$HOME/.zshrc
     _pref_shell=zsh
     ;;
-  */ash)
+  */sh)
     _profile=$HOME/.profile
-    _pref_shell=ash
+    _pref_shell="sh"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -196,7 +200,7 @@ install_asdf_interactively() {
       git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
 
       case $_pref_shell in
-      zsh | bash | ash)
+      zsh | bash | sh)
         echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
         ;;
       esac
