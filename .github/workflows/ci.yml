@@ -23,30 +23,24 @@ jobs:
 
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
-        shell: pwsh
         run: |
-          $location = (Invoke-WebRequest -Uri "https://github.com/software-mansion/scarb/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
-          $latest_version = ($location -replace '^.*/v','')
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Scarb version found is $latest_version"
-          echo "LATEST=$latest_version" >> $env:GITHUB_OUTPUT
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
-        shell: pwsh
         run: |
-          $location = (Invoke-WebRequest -Uri "https://github.com/foundry-rs/starknet-foundry/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
-          $latest_version = ($location -replace '^.*/v','')
+          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Starknet Foundry version found is $latest_version"
-          echo "LATEST=$latest_version" >> $env:GITHUB_OUTPUT
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Universal Sierra Compiler version from GitHub releases
         id: usc_version
-        shell: pwsh
         run: |
-          $location = (Invoke-WebRequest -Uri "https://github.com/software-mansion/universal-sierra-compiler/releases/latest" -Method Head -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Ignore).Headers.Location
-          $latest_version = ($location -replace '^.*/v','')
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Universal Sierra Compiler version found is $latest_version"
-          echo "LATEST=$latest_version" >> $env:GITHUB_OUTPUT
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Run starknetup
         run: ./starknetup.sh
