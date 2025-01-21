@@ -186,7 +186,7 @@ install_asdf_interactively() {
       set +e
       latest_asdf_version=$(curl -sS https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}')
       set -e
-      
+
       if [ -z "$latest_asdf_version" ]; then
         say "Could not fetch latest asdf version (possibly due to rate limit). Using default version ${DEFAULT_ASDF_VERSION}."
         latest_asdf_version="$DEFAULT_ASDF_VERSION"
