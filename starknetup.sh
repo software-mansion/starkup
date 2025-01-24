@@ -179,9 +179,7 @@ install_asdf_interactively() {
   esac
 
   if [ -n "$_profile" ]; then
-    if [ ! -f "$_profile" ]; then
-      touch "$_profile"
-    fi
+    touch "$_profile"
 
     say "asdf-vm is required. Do you want to install it now? (y/N): "
     read -r answer
