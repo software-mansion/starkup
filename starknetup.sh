@@ -53,31 +53,32 @@ main() {
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
 
-  local shell_config completion_message
+  _shell_config=""
+  _completion_message=""
 
   case ${SHELL:-""} in
   */zsh)
-    shell_config="$HOME/.zshrc"
-    completion_message="Run 'source ${shell_config}'"
+    _shell_config="$HOME/.zshrc"
+    _completion_message="Run 'source ${_shell_config}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
-      shell_config="$HOME/.bash_profile"
+      _shell_config="$HOME/.bash_profile"
     else
-      shell_config="$HOME/.bashrc"
+      _shell_config="$HOME/.bashrc"
     fi
-    completion_message="Run 'source ${shell_config}'"
+    _completion_message="Run 'source ${_shell_config}'"
     ;;
   */sh)
-    shell_config="$HOME/.profile"
-    completion_message="Run '. ${shell_config}'"
+    _shell_config="$HOME/.profile"
+    _completion_message="Run '. ${_shell_config}'"
     ;;
   *)
-    completion_message="Source your shell configuration file"
+    _completion_message="Source your shell configuration file"
     ;;
   esac
 
-  say "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
+  say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
 }
 
 assert_dependencies() {
@@ -89,43 +90,42 @@ assert_dependencies() {
 }
 
 assert_not_installed() {
-  local tool="$1"
-  local uninstall_instructions="$2"
+  _tool="$1"
+  _uninstall_instructions="$2"
 
-  if ! asdf which "$tool" >/dev/null 2>&1; then
-    if check_cmd "$tool"; then
-      err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. $uninstall_instructions"
+  if ! asdf which "$_tool" >/dev/null 2>&1; then
+    if check_cmd "$_tool"; then
+      err "$_tool is already installed outside of asdf. Please uninstall it and re-run this script. $_uninstall_instructions"
     fi
   fi
 }
 
 install_latest_asdf_plugin() {
-  local plugin="$1"
-  if asdf plugin list | grep -q "$plugin"; then
-    ensure asdf plugin update "$plugin"
+  _plugin="$1"
+  if asdf plugin list | grep -q "$_plugin"; then
+    ensure asdf plugin update "$_plugin"
   else
-    ensure asdf plugin add "$plugin"
+    ensure asdf plugin add "$_plugin"
   fi
 }
 
 install_latest_version() {
-  local tool="$1"
-  ensure asdf install "$tool" latest
+  _tool="$1"
+  ensure asdf install "$_tool" latest
 }
 
 uninstall_latest_version() {
-  local tool="$1"
-  local latest_version
-  latest_version=$(asdf latest "$tool")
+  _tool="$1"
+  _latest_version=$(asdf latest "$_tool")
 
-  if asdf list "$tool" "^${latest_version}$" >/dev/null 2>&1; then
-    ensure asdf uninstall "$tool" "$latest_version"
+  if asdf list "$_tool" "^${_latest_version}$" >/dev/null 2>&1; then
+    ensure asdf uninstall "$_tool" "$_latest_version"
   fi
 }
 
 set_global_latest_version() {
-  local tool="$1"
-  ensure asdf global "$tool" latest
+  _tool="$1"
+  ensure asdf global "$_tool" latest
 }
 
 say() {
@@ -152,9 +152,9 @@ ensure() {
 }
 
 install_asdf_interactively() {
-  local _profile
-  local _pref_shell
-  local _asdf_path="$HOME/.asdf"
+  _profile=""
+  _pref_shell=""
+  _asdf_path="$HOME/.asdf"
 
   case ${SHELL:-""} in
   */zsh)
