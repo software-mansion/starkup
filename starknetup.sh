@@ -208,7 +208,7 @@ install_asdf_interactively() {
       exit 0
       ;;
     *)
-      err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
+      err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
       ;;
     esac
   else
