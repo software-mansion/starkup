@@ -6,7 +6,7 @@ set -eu
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
-STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Consider removing snforge and sncast binaries from $HOME/.local/bin"
+STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from $HOME/.local/bin"
 SCRIPT_VERSION="0.1.0"
 DEFAULT_ASDF_VERSION="v0.14.1"
 
