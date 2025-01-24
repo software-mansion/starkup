@@ -190,7 +190,7 @@ install_asdf_interactively() {
       set -e
 
       if [ -z "$latest_asdf_version" ]; then
-        say "Could not fetch latest asdf version (possibly due to rate limit). Using default version ${DEFAULT_ASDF_VERSION}."
+        say "Could not fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
         latest_asdf_version="$DEFAULT_ASDF_VERSION"
       fi
 
