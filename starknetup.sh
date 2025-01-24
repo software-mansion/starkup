@@ -173,45 +173,34 @@ install_asdf_interactively() {
     fi
     _pref_shell=bash
     ;;
-  *)
-    err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
-    ;;
   esac
 
-  if [ -n "$_profile" ]; then
-    touch "$_profile"
+  if [ -z "$_profile" ] || [ -z "$_pref_shell" ]; then
+    err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
+  fi
 
-    say "asdf-vm is required. Do you want to install it now? (y/N): "
-    read -r answer
-    case $answer in
-    [Yy]*)
+  touch "$_profile"
+
+  say "asdf-vm is required. Do you want to install it now? (y/N): "
+  read -r answer
+  if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
       set +e
       latest_asdf_version=$(curl -sS --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}')
       set -e
+    if [ -z "$latest_asdf_version" ]; then
+      say "Could not fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
+      latest_asdf_version="$DEFAULT_ASDF_VERSION"
+    fi
 
-      if [ -z "$latest_asdf_version" ]; then
-        say "Could not fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
-        latest_asdf_version="$DEFAULT_ASDF_VERSION"
-      fi
+    say "Installing asdf-vm ${latest_asdf_version}...\n"
+    git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
 
-      say "Installing asdf-vm ${latest_asdf_version}...\n"
-      git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
+    echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
 
-      case $_pref_shell in
-      zsh | bash | sh)
-        echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
-        ;;
-      esac
-
-      say "asdf-vm has been installed. Run 'source ${_profile}' or start a new terminal session and re-run this script."
-      exit 0
-      ;;
-    *)
-      err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
-      ;;
-    esac
+    say "asdf-vm has been installed. Run 'source ${_profile}' or start a new terminal session and re-run this script."
+    exit 0
   else
-    err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
+    err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
 }
 
