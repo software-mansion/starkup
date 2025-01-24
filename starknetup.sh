@@ -184,9 +184,9 @@ install_asdf_interactively() {
   say "asdf-vm is required. Do you want to install it now? (y/N): "
   read -r answer
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-      set +e
-      latest_asdf_version=$(curl -sS --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}')
-      set -e
+    set +e
+    latest_asdf_version=$(curl -sS --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}')
+    set -e
     if [ -z "$latest_asdf_version" ]; then
       say "Could not fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
       latest_asdf_version="$DEFAULT_ASDF_VERSION"
