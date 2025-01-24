@@ -4,8 +4,9 @@
 set -eu
 
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
-SCARB_UNINSTALL_DOCS="https://docs.swmansion.com/scarb/download#uninstall"
-STARKNET_FOUNDRY_UNINSTALL_DOCS="PENDING"
+SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
+# TODO(#2): Link snfoundry uninstall docs once they are available
+STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Consider removing snforge and sncast binaries from $HOME/.local/bin"
 SCRIPT_VERSION="0.1.0"
 DEFAULT_ASDF_VERSION="v0.14.1"
 
@@ -40,12 +41,12 @@ main() {
   done
 
   assert_dependencies
-  assert_not_installed "scarb" $SCARB_UNINSTALL_DOCS
+  assert_not_installed "scarb" "$SCARB_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "scarb"
   install_latest_version "scarb"
   set_global_latest_version "scarb"
 
-  assert_not_installed "starknet-foundry" $STARKNET_FOUNDRY_UNINSTALL_DOCS
+  assert_not_installed "starknet-foundry" "$STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "starknet-foundry"
 
   # Reinstall to ensure the latest version of USC is installed
@@ -90,11 +91,11 @@ assert_dependencies() {
 
 assert_not_installed() {
   local tool="$1"
-  local uninstall_docs_url="$2"
+  local uninstall_instructions="$2"
 
   if ! asdf which "$tool" >/dev/null 2>&1; then
     if check_cmd "$tool"; then
-      err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. For uninstallation instructions, refer to $uninstall_docs_url."
+      err "$tool is already installed outside of asdf. Please uninstall it and re-run this script. $uninstall_instructions"
     fi
   fi
 }
