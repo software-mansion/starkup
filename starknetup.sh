@@ -163,11 +163,6 @@ install_asdf_interactively() {
     _pref_shell=zsh
     _completion_message="Run 'source ${_profile}'"
     ;;
-  */sh)
-    _profile=$HOME/.profile
-    _pref_shell="sh"
-    _completion_message="Run '. ${_profile}'"
-    ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
       _profile=$HOME/.bash_profile
@@ -176,6 +171,11 @@ install_asdf_interactively() {
     fi
     _pref_shell=bash
     _completion_message="Run 'source ${_profile}'"
+    ;;
+  */sh)
+    _profile=$HOME/.profile
+    _pref_shell="sh"
+    _completion_message="Run '. ${_profile}'"
     ;;
   esac
 
