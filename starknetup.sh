@@ -194,8 +194,8 @@ install_asdf_interactively() {
       latest_asdf_version="$DEFAULT_ASDF_VERSION"
     }
 
-    say "Installing asdf-vm ${latest_asdf_version}...\n"
-    git clone https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
+    say "Installing asdf-vm ${latest_asdf_version}..."
+    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
 
     echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
 
