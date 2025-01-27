@@ -40,16 +40,16 @@ main() {
   done
 
   assert_dependencies
+
   assert_not_installed "scarb" "$SCARB_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "scarb"
   install_latest_version "scarb"
   set_global_latest_version "scarb"
 
+  install_universal_sierra_compiler
+
   assert_not_installed "starknet-foundry" "$STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "starknet-foundry"
-
-  # Reinstall to ensure the latest version of USC is installed
-  uninstall_latest_version "starknet-foundry"
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
 
@@ -126,6 +126,10 @@ uninstall_latest_version() {
 set_global_latest_version() {
   _tool="$1"
   ensure asdf global "$_tool" latest
+}
+
+install_universal_sierra_compiler() {
+  curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
 }
 
 say() {
