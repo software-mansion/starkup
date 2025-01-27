@@ -154,16 +154,19 @@ ensure() {
 install_asdf_interactively() {
   _profile=""
   _pref_shell=""
+  _completion_message=""
   _asdf_path="$HOME/.asdf"
 
   case ${SHELL:-""} in
   */zsh)
     _profile=$HOME/.zshrc
     _pref_shell=zsh
+    _completion_message="Run 'source ${_profile}'"
     ;;
   */sh)
     _profile=$HOME/.profile
     _pref_shell="sh"
+    _completion_message="Run '. ${_profile}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -172,6 +175,7 @@ install_asdf_interactively() {
       _profile=$HOME/.bashrc
     fi
     _pref_shell=bash
+    _completion_message="Run 'source ${_profile}'"
     ;;
   esac
 
@@ -195,7 +199,7 @@ install_asdf_interactively() {
 
     echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
 
-    say "asdf-vm has been installed. Run 'source ${_profile}' or start a new terminal session and re-run this script."
+    say "asdf-vm has been installed. ${_completion_message} or start a new terminal session and re-run this script."
     exit 0
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
