@@ -102,7 +102,7 @@ assert_not_installed() {
 
 install_latest_asdf_plugin() {
   _plugin="$1"
-  if asdf plugin list | grep -q "$_plugin"; then
+  if asdf plugin list | grep -xq "$_plugin"; then
     ensure asdf plugin update "$_plugin"
   else
     ensure asdf plugin add "$_plugin"
