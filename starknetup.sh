@@ -40,15 +40,14 @@ main() {
   done
 
   assert_dependencies
+  assert_not_installed_outside_asdf
 
-  assert_not_installed "scarb" "$SCARB_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "scarb"
   install_latest_version "scarb"
   set_global_latest_version "scarb"
 
   install_universal_sierra_compiler
 
-  assert_not_installed "starknet-foundry" "$STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS"
   install_latest_asdf_plugin "starknet-foundry"
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
@@ -89,14 +88,35 @@ assert_dependencies() {
   fi
 }
 
-assert_not_installed() {
-  _tool="$1"
-  _uninstall_instructions="$2"
+assert_not_installed_outside_asdf() {
+  _installed_tools=""
 
-  if ! asdf which "$_tool" >/dev/null 2>&1; then
-    if check_cmd "$_tool"; then
-      err "$_tool is already installed outside of asdf. Please uninstall it and re-run this script. $_uninstall_instructions"
+  for _tool in "scarb" "starknet-foundry"; do
+    _uninst_instructions=""
+    _tool_cmds=""
+
+    case "$_tool" in
+    "scarb")
+      _uninst_instructions="$SCARB_UNINSTALL_INSTRUCTIONS"
+      _tool_cmds="scarb"
+      ;;
+    "starknet-foundry")
+      _uninst_instructions="$STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS"
+      _tool_cmds="snforge sncast"
+      ;;
+    esac
+
+    if ! asdf plugin list | grep -xq "$_tool"; then
+      for _cmd in $_tool_cmds; do
+        if check_cmd "$_cmd"; then
+          _installed_tools="${_installed_tools}${_installed_tools:+\n} - $_cmd (from $_tool). $_uninst_instructions"
+        fi
+      done
     fi
+  done
+
+  if [ -n "$_installed_tools" ]; then
+    err "The following tool(s) are already installed outside of asdf:\n$_installed_tools"
   fi
 }
 
