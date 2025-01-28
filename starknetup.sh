@@ -30,7 +30,7 @@ main() {
       exit 0
       ;;
     -V | --version)
-      printf "starknetup %s\n" "$SCRIPT_VERSION"
+      say "starknetup $SCRIPT_VERSION"
       exit 0
       ;;
     *)
@@ -133,7 +133,7 @@ install_universal_sierra_compiler() {
 }
 
 say() {
-  printf "starknetup: %s\n" "$1"
+  printf 'starknetup: %b\n' "$1"
 }
 
 err() {
