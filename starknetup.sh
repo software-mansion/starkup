@@ -106,7 +106,7 @@ assert_not_installed_outside_asdf() {
       ;;
     esac
 
-    if ! asdf plugin list | grep -xq "$_tool"; then
+    if ! check_asdf_plugin_installed "$_tool"; then
       for _cmd in $_tool_cmds; do
         if check_cmd "$_cmd"; then
           _installed_tools="${_installed_tools}${_installed_tools:+\n} - $_cmd (from $_tool). $_uninst_instructions"
@@ -122,11 +122,16 @@ assert_not_installed_outside_asdf() {
 
 install_latest_asdf_plugin() {
   _plugin="$1"
-  if asdf plugin list | grep -xq "$_plugin"; then
+  if check_asdf_plugin_installed "$_plugin"; then
     ensure asdf plugin update "$_plugin"
   else
     ensure asdf plugin add "$_plugin"
   fi
+}
+
+check_asdf_plugin_installed() {
+  _plugin="$1"
+  asdf plugin list | grep -xq "$_plugin"
 }
 
 install_latest_version() {
