@@ -153,8 +153,22 @@ set_global_latest_version() {
   ensure asdf global "$_tool" latest
 }
 
+get_latest_gh_version() {
+  _repo="$1"
+  curl -sS --fail "https://api.github.com/repos/${_repo}/releases/latest" | awk -F'"' '/"tag_name"/ {print $4}'
+}
+
 install_universal_sierra_compiler() {
-  curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
+  _version=""
+  if check_cmd universal-sierra-compiler; then
+    _version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
+  fi
+
+  _latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
+
+  if [ -n "$_version" ] && [ "$_version" != "$_latest_version" ]; then
+    curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
+  fi
 }
 
 say() {
@@ -218,13 +232,13 @@ install_asdf_interactively() {
   read -r answer
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
     # shellcheck disable=SC2015
-    latest_asdf_version=$(curl -sS --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | awk -F'"' '/"tag_name"/ {print $4}') && [ -n "$latest_asdf_version" ] || {
-      echo "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
-      latest_asdf_version="$DEFAULT_ASDF_VERSION"
+    _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
+      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
+      _latest_version="$DEFAULT_ASDF_VERSION"
     }
 
-    say "Installing asdf-vm ${latest_asdf_version}..."
-    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$latest_asdf_version"
+    say "Installing asdf-vm ${_latest_version}..."
+    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$_latest_version"
 
     echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
 
