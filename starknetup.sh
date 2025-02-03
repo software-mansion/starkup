@@ -229,7 +229,15 @@ install_asdf_interactively() {
   touch "$_profile"
 
   say "asdf-vm is required. Do you want to install it now? (y/N): "
-  read -r answer
+  # Starknetup is going to want to ask for confirmation by
+  # reading stdin. This script may be piped into `sh` though
+  # and wouldn't have stdin to pass to its children. Instead we're
+  # going to explicitly connect /dev/tty to the installer's stdin.
+  if [ ! -t 0 ] && [ -r /dev/tty ]; then
+    read -r answer </dev/tty
+  else
+    read -r answer
+  fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
     # shellcheck disable=SC2015
     _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
