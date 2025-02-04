@@ -77,6 +77,11 @@ main() {
     ;;
   esac
 
+  if ! check_cmd universal-sierra-compiler; then
+    _local_bin="${HOME}/.local/bin"
+    say "Couldn't finish universal-sierra-compiler installation, try manually adding ${_local_bin} to your PATH."
+  fi
+
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
 }
 
