@@ -167,7 +167,7 @@ install_universal_sierra_compiler() {
   _latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
 
   if [ -n "$_version" ] && [ "$_version" != "$_latest_version" ]; then
-    curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
+    curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | ${SHELL:-sh}
   fi
 }
 
