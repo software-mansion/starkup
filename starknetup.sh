@@ -160,13 +160,13 @@ get_latest_gh_version() {
 
 install_universal_sierra_compiler() {
   _version=""
+  _latest_version=""
   if check_cmd universal-sierra-compiler; then
     _version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
+    _latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
   fi
 
-  _latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
-
-  if [ -n "$_version" ] && [ "$_version" != "$_latest_version" ]; then
+  if [ -z "$_version" ] || [ "$_version" != "$_latest_version" ]; then
     curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | ${SHELL:-sh}
   fi
 }
