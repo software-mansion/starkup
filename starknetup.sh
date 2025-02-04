@@ -7,7 +7,7 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 # TODO(#2): Link snfoundry uninstall docs once they are available
 STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from $HOME/.local/bin"
 SCRIPT_VERSION="0.1.0"
-DEFAULT_ASDF_VERSION="v0.14.1"
+DEFAULT_ASDF_VERSION="v0.15.0"
 
 usage() {
   cat <<EOF
@@ -239,14 +239,11 @@ install_asdf_interactively() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    # shellcheck disable=SC2015
-    _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
-      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
-      _latest_version="$DEFAULT_ASDF_VERSION"
-    }
-
-    say "Installing asdf-vm ${_latest_version}..."
-    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$_latest_version"
+    # TODO: https://github.com/software-mansion/scarb/issues/1938
+    #   Support newer versions of asdf-vm
+    _version="$DEFAULT_ASDF_VERSION"
+    say "Installing asdf-vm ${_version}..."
+    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$_version"
 
     echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
 
