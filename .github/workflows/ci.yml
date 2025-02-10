@@ -42,8 +42,8 @@ jobs:
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
-      - name: Run starknetup
-        run: ./starknetup.sh
+      - name: Run starkup
+        run: ./starkup.sh
 
       - name: Check Scarb latest
         run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
@@ -60,11 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck starknetup.sh
+      - run: shellcheck starkup.sh
 
   shfmt:
     runs-on: ubuntu-latest
     steps:
       - uses: mfinelli/setup-shfmt@v3
       - uses: actions/checkout@v4
-      - run: shfmt --diff starknetup.sh
+      - run: shfmt --diff starkup.sh

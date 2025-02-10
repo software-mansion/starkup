@@ -30,7 +30,7 @@ main() {
       exit 0
       ;;
     -V | --version)
-      say "starknetup $SCRIPT_VERSION"
+      say "starkup $SCRIPT_VERSION"
       exit 0
       ;;
     *)
@@ -177,7 +177,7 @@ install_universal_sierra_compiler() {
 }
 
 say() {
-  printf 'starknetup: %b\n' "$1"
+  printf 'starkup: %b\n' "$1"
 }
 
 err() {
@@ -234,7 +234,7 @@ install_asdf_interactively() {
   touch "$_profile"
 
   say "asdf-vm is required. Do you want to install it now? (y/N): "
-  # Starknetup is going to want to ask for confirmation by
+  # Starkup is going to want to ask for confirmation by
   # reading stdin. This script may be piped into `sh` though
   # and wouldn't have stdin to pass to its children. Instead we're
   # going to explicitly connect /dev/tty to the installer's stdin.
