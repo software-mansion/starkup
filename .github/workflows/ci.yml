@@ -7,6 +7,57 @@ on:
   pull_request:
 
 jobs:
+  test-legacy-asdf:
+    name: test ${{ matrix.os }} (legacy asdf)
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup legacy asdf
+        uses: asdf-vm/actions/setup@v3
+        with:
+          asdf_branch: v0.15.0
+
+      - name: Fetch latest Scarb version from GitHub releases
+        id: scarb_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Scarb version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Starknet Foundry version from GitHub releases
+        id: snfoundry_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Starknet Foundry version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Universal Sierra Compiler version from GitHub releases
+        id: usc_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Universal Sierra Compiler version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Run starkup
+        run: ./starkup.sh
+
+      - name: Check Scarb latest
+        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+
+      - name: Check Starknet Foundry latest
+        run: |
+          snforge --version | grep "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
+          sncast --version | grep "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+
+      - name: Check Universal Sierra Compiler latest
+        run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+
   test:
     name: test ${{ matrix.os }}
     strategy:
@@ -19,7 +70,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup asdf
-        uses: asdf-vm/actions/setup@v3
+        run: |
+          ASDF_VERSION="0.16.2"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            ASDF_PLATFORM="linux_amd64"
+          else
+            ASDF_PLATFORM="darwin_arm64"
+          fi
+          curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/v${ASDF_VERSION}/asdf-${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C /usr/local/bin
+
+          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
