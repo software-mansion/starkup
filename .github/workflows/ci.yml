@@ -96,7 +96,7 @@ jobs:
 
       - name: Run starkup
         # Accept asdf installation prompt
-        run: yes y | ./starkup.sh
+        run: yes y 2>/dev/null | ./starkup.sh
 
       - name: Check Scarb latest
         run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
