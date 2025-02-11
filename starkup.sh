@@ -141,7 +141,18 @@ check_asdf_plugin_installed() {
 
 install_latest_version() {
   _tool="$1"
-  ensure asdf install "$_tool" latest
+  _latest_version=$(asdf latest "$_tool")
+  if check_version_installed "$_tool" "$_latest_version"; then
+    say "$_tool $_latest_version is already installed"
+  else
+    ensure asdf install "$_tool" latest
+  fi
+}
+
+check_version_installed() {
+  _tool="$1"
+  _version="$2"
+  asdf list "$_tool" | awk '{gsub(/^[* ]+/,"",$0); print}' | grep -xq "^${_version}$"
 }
 
 uninstall_latest_version() {
@@ -155,7 +166,11 @@ uninstall_latest_version() {
 
 set_global_latest_version() {
   _tool="$1"
-  ensure asdf global "$_tool" latest
+  if is_asdf_legacy; then
+    ensure asdf global "$_tool" latest
+  else
+    ensure asdf set --home "$_tool" latest
+  fi
 }
 
 get_latest_gh_version() {
@@ -197,6 +212,16 @@ check_cmd() {
 
 ensure() {
   if ! "$@"; then err "command failed: $*"; fi
+}
+
+get_asdf_version() {
+  asdf version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+(-[^[:space:]]+)?$'
+}
+
+# asdf versions < 0.16.0 are legacy
+is_asdf_legacy() {
+  _version=$(get_asdf_version)
+  printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xq "^$_version$"
 }
 
 install_asdf_interactively() {
