@@ -89,10 +89,6 @@ main() {
 assert_dependencies() {
   need_cmd curl
   need_cmd git
-  need_cmd grep
-  need_cmd awk
-  need_cmd sort
-  need_cmd head
 
   if ! check_cmd asdf; then
     install_asdf_interactively
@@ -276,9 +272,7 @@ install_asdf_interactively() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    need_cmd mkdir
     need_cmd tar
-    need_cmd uname
 
     # shellcheck disable=SC2015
     _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
