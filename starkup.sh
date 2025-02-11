@@ -294,7 +294,7 @@ install_asdf_interactively() {
 
     mkdir -p "$LOCAL_BIN"
 
-    curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/v${_latest_version}/asdf-v${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+    curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_latest_version}/asdf-${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
 
     echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
     echo >>"$_profile" && echo "export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\"" >>"$_profile"
