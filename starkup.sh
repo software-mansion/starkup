@@ -261,11 +261,14 @@ install_asdf_interactively() {
 
   say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
 
-  # Starkup is going to want to ask for confirmation by
-  # reading stdin. This script may be piped into `sh` though
-  # and wouldn't have stdin to pass to its children. Instead we're
-  # going to explicitly connect /dev/tty to the installer's stdin.
-  if [ ! -t 0 ] && [ -r /dev/tty ]; then
+  if [ ! -t 0 ]; then
+    # Starkup is going to want to ask for confirmation by
+    # reading stdin. This script may be piped into `sh` though
+    # and wouldn't have stdin to pass to its children. Instead we're
+    # going to explicitly connect /dev/tty to the installer's stdin.
+    if [ ! -t 1 ] || [ ! -r /dev/tty ]; then
+      err "Unable to run interactively."
+    fi
     read -r answer </dev/tty
   else
     read -r answer
