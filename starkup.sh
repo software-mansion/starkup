@@ -5,9 +5,11 @@ set -eu
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
-STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from $HOME/.local/bin"
+LOCAL_BIN="${HOME}/.local/bin"
+LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
+STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
 SCRIPT_VERSION="0.1.0"
-DEFAULT_ASDF_VERSION="v0.15.0"
+DEFAULT_ASDF_VERSION="v0.16.2"
 
 usage() {
   cat <<EOF
@@ -78,8 +80,7 @@ main() {
   esac
 
   if ! check_cmd universal-sierra-compiler; then
-    _local_bin="${HOME}/.local/bin"
-    say "Couldn't finish universal-sierra-compiler installation, try manually adding ${_local_bin} to your PATH."
+    say "Couldn't finish universal-sierra-compiler installation, try manually adding ${LOCAL_BIN} to your PATH."
   fi
 
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
@@ -258,7 +259,8 @@ install_asdf_interactively() {
 
   touch "$_profile"
 
-  say "asdf-vm is required. Do you want to install it now? (y/N): "
+  say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
+
   # Starkup is going to want to ask for confirmation by
   # reading stdin. This script may be piped into `sh` though
   # and wouldn't have stdin to pass to its children. Instead we're
@@ -269,13 +271,35 @@ install_asdf_interactively() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    # TODO: https://github.com/software-mansion/scarb/issues/1938
-    #   Support newer versions of asdf-vm
-    _version="$DEFAULT_ASDF_VERSION"
-    say "Installing asdf-vm ${_version}..."
-    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$_version"
+    need_cmd mkdir
+    need_cmd tar
+    need_cmd uname
 
-    echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
+    # shellcheck disable=SC2015
+    _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
+      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
+      _latest_version="$DEFAULT_ASDF_VERSION"
+    }
+
+    say "Installing asdf-vm ${_latest_version}..."
+
+    _os="$(uname -s)"
+    _arch="$(uname -m)"
+    case "${_os}-${_arch}" in
+    "Linux-x86_64") _platform="linux-amd64" ;;
+    "Linux-aarch64") _platform="linux-arm64" ;;
+    "Linux-i386" | "Linux-i686") _platform="linux-386" ;;
+    "Darwin-x86_64") _platform="darwin-amd64" ;;
+    "Darwin-arm64") _platform="darwin-arm64" ;;
+    *) err "Unsupported platform ${_os}-${_arch}. Please install asdf-vm manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}." ;;
+    esac
+
+    mkdir -p "$LOCAL_BIN"
+
+    curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/v${_latest_version}/asdf-v${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+
+    echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
+    echo >>"$_profile" && echo "export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\"" >>"$_profile"
 
     say "asdf-vm has been installed. ${_completion_message} or start a new terminal session and re-run this script."
     exit 0
