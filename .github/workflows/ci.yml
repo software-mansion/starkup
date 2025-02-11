@@ -73,17 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup asdf
-        run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            ASDF_PLATFORM="linux-amd64"
-          else
-            ASDF_PLATFORM="darwin-arm64"
-          fi
-
-          curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/${ASDF_VERSION}/asdf-${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C /usr/local/bin
-          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
-
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
         run: |
@@ -106,7 +95,8 @@ jobs:
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Run starkup
-        run: ./starkup.sh
+        # Accept asdf installation prompt
+        run: yes y | ./starkup.sh
 
       - name: Check Scarb latest
         run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
