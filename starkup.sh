@@ -89,7 +89,6 @@ main() {
 assert_dependencies() {
   need_cmd curl
   need_cmd git
-
   if ! check_cmd asdf; then
     install_asdf_interactively
   fi
