@@ -73,9 +73,9 @@ jobs:
         run: |
           ASDF_VERSION="0.16.2"
           if [ "${{ runner.os }}" = "Linux" ]; then
-            ASDF_PLATFORM="linux_amd64"
+            ASDF_PLATFORM="linux-amd64"
           else
-            ASDF_PLATFORM="darwin_arm64"
+            ASDF_PLATFORM="darwin-arm64"
           fi
           curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/v${ASDF_VERSION}/asdf-${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C /usr/local/bin
 
