@@ -103,6 +103,11 @@ assert_dependencies() {
   _need_interaction="$1"
   need_cmd curl
   need_cmd git
+  need_cmd grep
+  need_cmd awk
+  need_cmd sort
+  need_cmd head
+
   if ! check_cmd asdf; then
     install_asdf "$_need_interaction"
   fi
