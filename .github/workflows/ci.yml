@@ -102,6 +102,7 @@ jobs:
           else
             expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\r"; expect eof'
           fi
+          echo $PATH
 
       - name: Check Scarb latest
         run: |
