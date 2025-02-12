@@ -226,31 +226,6 @@ is_asdf_legacy() {
 }
 
 install_asdf_interactively() {
-  _profile=""
-  _asdf_path="$HOME/.asdf"
-
-  case ${SHELL:-""} in
-  */zsh)
-    _profile=$HOME/.zshrc
-    ;;
-  */bash)
-    if [ "$(uname)" = "Darwin" ]; then
-      _profile=$HOME/.bash_profile
-    else
-      _profile=$HOME/.bashrc
-    fi
-    ;;
-  */sh)
-    _profile=$HOME/.profile
-    ;;
-  esac
-
-  if [ -z "$_profile" ]; then
-    err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
-  fi
-
-  touch "$_profile"
-
   say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
 
   if [ ! -t 0 ]; then
@@ -290,6 +265,29 @@ install_asdf_interactively() {
     mkdir -p "$LOCAL_BIN"
 
     curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_latest_version}/asdf-${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+
+    _profile=""
+    case ${SHELL:-""} in
+    */zsh)
+      _profile=$HOME/.zshrc
+      ;;
+    */bash)
+      if [ "$(uname)" = "Darwin" ]; then
+        _profile=$HOME/.bash_profile
+      else
+        _profile=$HOME/.bashrc
+      fi
+      ;;
+    */sh)
+      _profile=$HOME/.profile
+      ;;
+    esac
+
+    if [ -z "$_profile" ]; then
+      err "Could not detect shell, manually add ${LOCAL_BIN_ESCAPED} and \${ASDF_DATA_DIR:-\$HOME/.asdf}/shims to your PATH and re-run this script."
+    fi
+
+    touch "$_profile"
 
     echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
     echo >>"$_profile" && echo "export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\"" >>"$_profile"
