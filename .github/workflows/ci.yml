@@ -104,6 +104,7 @@ jobs:
           fi
 
       - name: Run starkup
+        shell: bash -l {0}
         run: ./starkup.sh
 
       - name: Check Scarb latest
