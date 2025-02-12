@@ -106,9 +106,7 @@ jobs:
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
-        run: |
-          echo $PATH
-          scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
 
       - name: Check Starknet Foundry latest
         run: |

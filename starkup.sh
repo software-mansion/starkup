@@ -281,11 +281,10 @@ install_asdf_interactively() {
     */sh)
       _profile=$HOME/.profile
       ;;
-    esac
-
-    if [ -z "$_profile" ]; then
+    *)
       err "Could not detect shell, manually add ${LOCAL_BIN_ESCAPED} and \${ASDF_DATA_DIR:-\$HOME/.asdf}/shims to your PATH and re-run this script."
-    fi
+      ;;
+    esac
 
     touch "$_profile"
 
