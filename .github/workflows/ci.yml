@@ -102,6 +102,11 @@ jobs:
           else
             expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\r"; expect eof'
           fi
+          if [ ${{ runner.os }} = "Linux" ]; then
+            source ~/.bashrc
+          else
+            source ~/.bash_profile
+          fi
           echo $PATH
 
       - name: Check Scarb latest
