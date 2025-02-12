@@ -94,7 +94,7 @@ jobs:
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
-      - name: Run starkup
+      - name: Run starkup (install asdf)
         # Accept asdf installation prompt
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
@@ -102,6 +102,9 @@ jobs:
           else
             expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\r"; expect eof'
           fi
+
+      - name: Run starkup
+        run: ./starkup.sh
 
       - name: Check Scarb latest
         run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
