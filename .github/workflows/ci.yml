@@ -101,6 +101,7 @@ jobs:
             printf "y\n" | script -q -c "$SHELL starkup.sh" /dev/null
           else
             expect -c '
+              set timeout 60
               spawn ./starkup.sh
               expect {
                 -re {.*\(y\/N\):} {
