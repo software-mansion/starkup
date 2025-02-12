@@ -227,13 +227,11 @@ is_asdf_legacy() {
 
 install_asdf_interactively() {
   _profile=""
-  _pref_shell=""
   _asdf_path="$HOME/.asdf"
 
   case ${SHELL:-""} in
   */zsh)
     _profile=$HOME/.zshrc
-    _pref_shell=zsh
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -241,15 +239,13 @@ install_asdf_interactively() {
     else
       _profile=$HOME/.bashrc
     fi
-    _pref_shell=bash
     ;;
   */sh)
     _profile=$HOME/.profile
-    _pref_shell="sh"
     ;;
   esac
 
-  if [ -z "$_profile" ] || [ -z "$_pref_shell" ]; then
+  if [ -z "$_profile" ]; then
     err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
 
