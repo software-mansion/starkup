@@ -100,7 +100,16 @@ jobs:
           if [ "${{ runner.os }}" = "Linux" ]; then
             printf "y\n" | script -q -c "$SHELL starkup.sh" /dev/null
           else
-            expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\n"; expect eof'
+            expect -c '
+              spawn ./starkup.sh
+              expect {
+                -re {.*\(y\/N\):} {
+                  send "y\n"
+                  exp_continue
+                }
+                eof
+              }
+            '
           fi
           
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
