@@ -102,12 +102,8 @@ jobs:
           else
             expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\r"; expect eof'
           fi
-          if [ ${{ runner.os }} = "Linux" ]; then
-            source ~/.bashrc
-          else
-            source ~/.bash_profile
-          fi
-          echo $PATH
+          
+          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
         run: |
