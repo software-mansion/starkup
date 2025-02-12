@@ -98,9 +98,9 @@ jobs:
         # Accept asdf installation prompt
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
-            printf "y\n" |  script -q -c "$SHELL starkup.sh" /dev/nul
+            printf "y\n" | script -q -c "$SHELL starkup.sh" /dev/null
           else
-            printf "y\n" | script -q /dev/null $SHELL -c "./starkup.sh"
+            expect -c 'spawn ./starkup.sh; expect -re ".*:"; send "y\r"; expect eof'
           fi
 
       - name: Check Scarb latest
