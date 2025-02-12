@@ -104,11 +104,12 @@ jobs:
           fi
 
       - name: Run starkup
-        shell: bash -l {0}
         run: ./starkup.sh
 
       - name: Check Scarb latest
-        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+        run: |
+          echo $PATH
+          scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
 
       - name: Check Starknet Foundry latest
         run: |
