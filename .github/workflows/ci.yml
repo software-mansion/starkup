@@ -97,9 +97,11 @@ jobs:
       - name: Run starkup
         # Accept asdf installation prompt
         run: |
-          script -q -c "$SHELL starkup.sh" /dev/null <<EOF
-          y
-          EOF
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            printf "y\n" |  script -q -c "$SHELL starkup.sh" /dev/nul
+          else
+            printf "y\n" | script -q /dev/null $SHELL -c "./starkup.sh"
+          fi
 
       - name: Check Scarb latest
         run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
