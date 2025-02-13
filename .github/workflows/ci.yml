@@ -96,7 +96,7 @@ jobs:
 
       - name: Run starkup
         run: |
-          ./starkup.sh -y
+          $SHELL starkup.sh -y
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
