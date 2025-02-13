@@ -234,7 +234,7 @@ is_asdf_legacy() {
 
 install_asdf() {
   _need_interaction="$1"
-
+  _answer=""
   if "$_need_interaction"; then
     say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
     if [ ! -t 0 ]; then
@@ -245,15 +245,15 @@ install_asdf() {
       if [ ! -t 1 ] || [ ! -r /dev/tty ]; then
         err "Unable to run interactively."
       fi
-      read -r answer </dev/tty
+      read -r _answer </dev/tty
     else
-      read -r answer
+      read -r _answer
     fi
   else
-    answer="y"
+    _answer="y"
   fi
 
-  if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+  if [ "$_answer" = "y" ] || [ "$_answer" = "Y" ]; then
     need_cmd tar
 
     # shellcheck disable=SC2015
