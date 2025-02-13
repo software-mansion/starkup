@@ -20,7 +20,7 @@ Starkup supports the installation of the following tools:
 
 ## Architecture
 
-Starkup relies on [ASDF] package manager to install the latest versions of [Scarb] and [Starknet Foundry]. If you don't have [ASDF] yet, no worries! We will install it interactively, or point you to appropriate docs.
+Starkup relies on [ASDF] package manager to install the latest versions of [Scarb] and [Starknet Foundry]. If you don't have [ASDF] yet, no worries - Starkup can handle that as well!
 
 ## Community
 
