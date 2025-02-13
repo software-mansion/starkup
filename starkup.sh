@@ -152,7 +152,7 @@ install_latest_version() {
 check_version_installed() {
   _tool="$1"
   _version="$2"
-  asdf list "$_tool" | awk '{gsub(/^[* ]+/,"",$0); print}' | grep -xq "^${_version}$"
+  asdf list "$_tool" | grep -q "^[^0-9]*${_version}$"
 }
 
 uninstall_latest_version() {
