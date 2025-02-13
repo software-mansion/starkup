@@ -221,7 +221,7 @@ get_asdf_version() {
 # asdf versions < 0.16.0 are legacy
 is_asdf_legacy() {
   _version=$(get_asdf_version)
-  printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xq "^$_version$"
+  printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xqvF "0.16.0"
 }
 
 install_asdf_interactively() {
