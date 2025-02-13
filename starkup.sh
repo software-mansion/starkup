@@ -20,11 +20,14 @@ Usage: $0 [OPTIONS]
 Options:
   -h, --help      Print help
   -V, --version   Print script version
+  -y, --yes       Disable confirmation prompt
 
 EOF
 }
 
 main() {
+  _need_interaction=true
+
   for arg in "$@"; do
     case "$arg" in
     -h | --help)
@@ -35,13 +38,16 @@ main() {
       say "starkup $SCRIPT_VERSION"
       exit 0
       ;;
+    -y | --yes)
+      _need_interaction=false
+      ;;
     *)
       err "invalid option '$arg'. For more information, try '--help'."
       ;;
     esac
   done
 
-  assert_dependencies
+  assert_dependencies "$_need_interaction"
   assert_not_installed_outside_asdf
 
   install_latest_asdf_plugin "scarb"
@@ -87,10 +93,11 @@ main() {
 }
 
 assert_dependencies() {
+  _need_interaction="$1"
   need_cmd curl
   need_cmd git
   if ! check_cmd asdf; then
-    install_asdf_interactively
+    install_asdf "$_need_interaction"
   fi
 }
 
@@ -225,21 +232,27 @@ is_asdf_legacy() {
   printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xqvF "0.16.0"
 }
 
-install_asdf_interactively() {
-  say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
+install_asdf() {
+  _need_interaction="$1"
 
-  if [ ! -t 0 ]; then
-    # Starkup is going to want to ask for confirmation by
-    # reading stdin. This script may be piped into `sh` though
-    # and wouldn't have stdin to pass to its children. Instead we're
-    # going to explicitly connect /dev/tty to the installer's stdin.
-    if [ ! -t 1 ] || [ ! -r /dev/tty ]; then
-      err "Unable to run interactively."
+  if "$_need_interaction"; then
+    say "asdf-vm is required. It can be installed via package managers, including Homebrew and Pacman.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
+    if [ ! -t 0 ]; then
+      # Starkup is going to want to ask for confirmation by
+      # reading stdin. This script may be piped into `sh` though
+      # and wouldn't have stdin to pass to its children. Instead we're
+      # going to explicitly connect /dev/tty to the installer's stdin.
+      if [ ! -t 1 ] || [ ! -r /dev/tty ]; then
+        err "Unable to run interactively."
+      fi
+      read -r answer </dev/tty
+    else
+      read -r answer
     fi
-    read -r answer </dev/tty
   else
-    read -r answer
+    answer="y"
   fi
+
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
     need_cmd tar
 
