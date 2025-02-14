@@ -97,7 +97,7 @@ jobs:
       - name: Run starkup
         shell: bash
         env:
-          SHELL: bash
+          SHELL: /bin/bash
         run: |
           ./starkup.sh -y
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH

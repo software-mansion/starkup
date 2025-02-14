@@ -7,6 +7,8 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 # TODO(#2): Link snfoundry uninstall docs once they are available
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
+ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
+ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
 SCRIPT_VERSION="0.1.0"
 DEFAULT_ASDF_VERSION="v0.16.2"
@@ -60,7 +62,6 @@ main() {
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
 
-  _shell_config=""
   _completion_message=""
 
   case ${SHELL:-""} in
@@ -85,8 +86,8 @@ main() {
     ;;
   esac
 
-  if ! check_cmd universal-sierra-compiler; then
-    say "Couldn't finish universal-sierra-compiler installation, try manually adding ${LOCAL_BIN} to your PATH."
+  if [ -z "${SHELL:-""}" ]; then
+    say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
   fi
 
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
@@ -279,6 +280,9 @@ install_asdf() {
 
     curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_latest_version}/asdf-${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
 
+    export PATH="${LOCAL_BIN}:$PATH"
+    export PATH="${ASDF_SHIMS}:$PATH"
+
     _profile=""
     case ${SHELL:-""} in
     */zsh)
@@ -294,19 +298,13 @@ install_asdf() {
     */sh)
       _profile=$HOME/.profile
       ;;
-    *)
-      err "Could not detect shell, manually add ${LOCAL_BIN_ESCAPED} and \${ASDF_DATA_DIR:-\$HOME/.asdf}/shims to your PATH and re-run this script."
-      ;;
     esac
 
-    touch "$_profile"
-
-    echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
-    echo >>"$_profile" && echo "export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\"" >>"$_profile"
-
-    export PATH="${LOCAL_BIN}:$PATH"
-    export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
+    if [ -n "$_profile" ]; then
+      touch "$_profile"
+      echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
+      echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
+    fi
     say "asdf-vm has been installed."
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
