@@ -95,8 +95,11 @@ jobs:
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Run starkup
+        shell: bash
+        env:
+          SHELL: bash
         run: |
-          $SHELL starkup.sh -y
+          ./starkup.sh -y
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
