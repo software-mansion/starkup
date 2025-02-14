@@ -237,7 +237,7 @@ install_asdf() {
   _need_interaction="$1"
   _answer=""
   if "$_need_interaction"; then
-    say "asdf-vm is required. It can be installed via package managers, including Homebrew, or any AUR helper.\nFor more information, visit ${ASDF_INSTALL_DOCS}.\nAlternatively, an asdf binary can be installed by starkup.\nDo you want to install it now? (y/N):"
+    say "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${ASDF_INSTALL_DOCS}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
     if [ ! -t 0 ]; then
       # Starkup is going to want to ask for confirmation by
       # reading stdin. This script may be piped into `sh` though
