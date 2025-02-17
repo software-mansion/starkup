@@ -10,7 +10,7 @@ LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
-SCRIPT_VERSION="0.1.0"
+SCRIPT_VERSION="0.2.0"
 DEFAULT_ASDF_VERSION="v0.16.2"
 
 usage() {
