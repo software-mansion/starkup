@@ -16,7 +16,6 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 # TODO(#2): Link snfoundry uninstall docs once they are available
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
-
 usage() {
   cat <<EOF
 The installer for Starknet tools. Installs the latest versions of Scarb, Starknet Foundry and Universal Sierra Compiler using asdf.
@@ -60,7 +59,7 @@ main() {
 
   install_universal_sierra_compiler
 
-  # todo: after profiler and coverage have shorthand plugin names, 
+  # todo: after profiler and coverage have shorthand plugin names,
   # move plugin installation into the for loop below
   install_latest_asdf_plugin "scarb"
   install_latest_asdf_plugin "starknet-foundry"
