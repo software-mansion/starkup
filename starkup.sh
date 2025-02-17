@@ -60,17 +60,23 @@ main() {
   done
 
   assert_dependencies "$_need_interaction"
-  assert_not_installed_outside_asdf
 
-  install_latest_asdf_plugin "scarb"
-  install_latest_version "scarb"
-  set_global_latest_version "scarb"
+  tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
+  assert_not_installed_outside_asdf "$tools_list"
 
   install_universal_sierra_compiler
 
+  # todo: after profiler and coverage have shorthand plugin names, 
+  # move plugin installation into the for loop below
+  install_latest_asdf_plugin "scarb"
   install_latest_asdf_plugin "starknet-foundry"
-  install_latest_version "starknet-foundry"
-  set_global_latest_version "starknet-foundry"
+  install_latest_asdf_plugin "cairo-coverage" "https://github.com/software-mansion/asdf-cairo-coverage.git"
+  install_latest_asdf_plugin "cairo-profiler" "https://github.com/software-mansion/asdf-cairo-profiler.git"
+
+  for tool in $tools_list; do
+    install_latest_version "$tool"
+    set_global_latest_version "$tool"
+  done
 
   _completion_message=""
 
@@ -110,9 +116,10 @@ assert_dependencies() {
 }
 
 assert_not_installed_outside_asdf() {
+  tools_list="$*"
   _installed_tools=""
 
-  for _tool in "scarb" "starknet-foundry"; do
+  for _tool in $tools_list; do
     _uninst_instructions=""
     _tool_cmds=""
 
@@ -124,6 +131,14 @@ assert_not_installed_outside_asdf() {
     "starknet-foundry")
       _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/snforge and sncast/g")
       _tool_cmds="snforge sncast"
+      ;;
+    "cairo-coverage")
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/cairo-coverage/g")
+      _tool_cmds="cairo-coverage"
+      ;;
+    "cairo-profiler")
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/cairo-profiler/g")
+      _tool_cmds="cairo-profiler"
       ;;
     esac
 
@@ -143,10 +158,11 @@ assert_not_installed_outside_asdf() {
 
 install_latest_asdf_plugin() {
   _plugin="$1"
+  _url=${2:-""}
   if check_asdf_plugin_installed "$_plugin"; then
     ensure asdf plugin update "$_plugin"
   else
-    ensure asdf plugin add "$_plugin"
+    ensure asdf plugin add "$_plugin" "$_url"
   fi
 }
 
