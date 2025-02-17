@@ -2,17 +2,12 @@
 
 set -eu
 
-SCRIPT_VERSION="0.1.0"
+SCRIPT_VERSION="0.2.0"
 
 ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
-<<<<<<< HEAD
-STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
-SCRIPT_VERSION="0.2.0"
-DEFAULT_ASDF_VERSION="v0.16.2"
-=======
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
@@ -20,8 +15,6 @@ LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
-
->>>>>>> 3d18043 (Group variables, make uninstall instructions general)
 
 usage() {
   cat <<EOF
@@ -66,7 +59,7 @@ main() {
 
   install_universal_sierra_compiler
 
-  # todo: after profiler and coverage have shorthand plugin names, 
+  # todo(scarb#1989): after profiler and coverage have shorthand plugin names,
   # move plugin installation into the for loop below
   install_latest_asdf_plugin "scarb"
   install_latest_asdf_plugin "starknet-foundry"
