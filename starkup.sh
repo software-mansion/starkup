@@ -82,13 +82,10 @@ main() {
     _completion_message="Run '. ${_shell_config}'"
     ;;
   *)
+    say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
     _completion_message="Source your shell configuration file"
     ;;
   esac
-
-  if [ -z "${SHELL:-""}" ]; then
-    say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
-  fi
 
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
 }
