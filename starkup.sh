@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.2.0"
+SCRIPT_VERSION="0.3.0"
 
 ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
