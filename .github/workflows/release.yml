@@ -30,6 +30,11 @@ jobs:
           echo "STARKUP_TAG: v$STARKUP_TAG"
           [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Versions do not match."; exit 1; }
 
+      - check:
+        uses: ./.github/workflows/_check.yml
+        with:
+          os: macos-latest
+
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
