@@ -42,6 +42,20 @@ jobs:
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
+      - name: Fetch latest Cairo Coverage version from GitHub releases
+        id: coverage_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Cairo Coverage version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Cairo Profiler version from GitHub releases
+        id: profiler_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Cairo Profiler version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
       - name: Run starkup
         run: ./starkup.sh
 
@@ -55,6 +69,12 @@ jobs:
 
       - name: Check Universal Sierra Compiler latest
         run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+
+      - name: Check Cairo Coverage latest
+        run: cairo-coverage --version | grep "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
+
+      - name: Check Cairo Profiler latest
+        run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
 
   test:
     name: test ${{ inputs.os }}
@@ -85,6 +105,20 @@ jobs:
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
+      - name: Fetch latest Cairo Coverage version from GitHub releases
+        id: coverage_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Cairo Coverage version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Cairo Profiler version from GitHub releases
+        id: profiler_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Cairo Profiler version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
       - name: Run starkup
         shell: bash
         env:
@@ -103,3 +137,9 @@ jobs:
 
       - name: Check Universal Sierra Compiler latest
         run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+
+      - name: Check Cairo Coverage latest
+        run: cairo-coverage --version | grep "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
+
+      - name: Check Cairo Profiler latest
+        run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
