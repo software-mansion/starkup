@@ -19,6 +19,7 @@ Starkup supports the installation of the following tools:
 - [Universal Sierra Compiler] compiler for any ever-existing Sierra version
 - [Cairo Profiler] profiler for Cairo programming language & Starknet
 - [Cairo Coverage] utility for coverage reports generation for code written in Cairo programming language
+- [CairoLS] vscode extension
 
 ## Architecture
 
@@ -36,6 +37,7 @@ Feel free to chat with us on our channel on [Telegram] or [Starknet's Discord]!
 [Starknet Foundry]: https://foundry-rs.github.io/starknet-foundry/
 [Cairo Profiler]: https://github.com/software-mansion/cairo-profiler
 [Cairo Coverage]: https://github.com/software-mansion/cairo-coverage
+[CairoLS]: https://github.com/software-mansion/cairols
 [Starknet]: https://www.starknet.io/what-is-starknet/
 [Universal Sierra Compiler]: https://github.com/software-mansion/universal-sierra-compiler
 [ASDF]: https://asdf-vm.com/guide/getting-started.html
