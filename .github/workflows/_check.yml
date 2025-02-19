@@ -1,0 +1,105 @@
+name: Check
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+
+jobs:
+  test-legacy-asdf:
+    name: test ${{ inputs.os }} (legacy asdf)
+    env:
+      ASDF_VERSION: v0.15.0
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup legacy asdf
+        uses: asdf-vm/actions/setup@v3
+        with:
+          asdf_branch: ${{ env.ASDF_VERSION }}
+
+      - name: Fetch latest Scarb version from GitHub releases
+        id: scarb_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Scarb version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Starknet Foundry version from GitHub releases
+        id: snfoundry_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Starknet Foundry version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Universal Sierra Compiler version from GitHub releases
+        id: usc_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Universal Sierra Compiler version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Run starkup
+        run: ./starkup.sh
+
+      - name: Check Scarb latest
+        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+
+      - name: Check Starknet Foundry latest
+        run: |
+          snforge --version | grep "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
+          sncast --version | grep "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+
+      - name: Check Universal Sierra Compiler latest
+        run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+
+  test:
+    name: test ${{ inputs.os }}
+    env:
+      ASDF_VERSION: v0.16.2
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest Scarb version from GitHub releases
+        id: scarb_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Scarb version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Starknet Foundry version from GitHub releases
+        id: snfoundry_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Starknet Foundry version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Fetch latest Universal Sierra Compiler version from GitHub releases
+        id: usc_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Universal Sierra Compiler version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Run starkup
+        shell: bash
+        env:
+          SHELL: /bin/bash
+        run: |
+          ./starkup.sh -y
+          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
+
+      - name: Check Scarb latest
+        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+
+      - name: Check Starknet Foundry latest
+        run: |
+          snforge --version | grep "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
+          sncast --version | grep "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+
+      - name: Check Universal Sierra Compiler latest
+        run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"

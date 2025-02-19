@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]*"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    name: Release Starkup to Cloud Storage
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v4
+
+      - name: Check script version
+        run: |
+          STARKUP_TAG=$(./starkup.sh --version)
+          echo "RELEASE_TAG: $RELEASE_TAG"
+          echo "STARKUP_TAG: v$STARKUP_TAG"
+          [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Versions do not match."; exit 1; }
+
+      - check:
+        uses: ./.github/workflows/_check.yml
+        with:
+          os: macos-latest
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Upload file
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+          path: starkup.sh
+          destination: starkup.dev
+          process_gcloudignore: false
+
+      - name: Verify release
+        run: |
+          sleep 5
+          STARKUP_TAG=$(curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.dev | sh -s -- --version)
+          echo "RELEASE_TAG: $RELEASE_TAG"
+          echo "STARKUP_TAG: $STARKUP_TAG"
+          [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Release verification failed."; exit 1; }
