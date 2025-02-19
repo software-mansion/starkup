@@ -2,7 +2,9 @@
 
 set -eu
 
-SCRIPT_VERSION="0.2.0"
+SCRIPT_VERSION="0.2.1"
+
+SCARB_VERSION="2.9.3"
 
 ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
@@ -54,8 +56,8 @@ main() {
 
   assert_dependencies "$_need_interaction"
 
-  tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
-  assert_not_installed_outside_asdf "$tools_list"
+  tools_list='starknet-foundry cairo-coverage cairo-profiler'
+  assert_not_installed_outside_asdf "scarb $tools_list"
 
   install_universal_sierra_compiler
   install_vscode_plugin
@@ -66,6 +68,8 @@ main() {
   install_latest_asdf_plugin "starknet-foundry"
   install_latest_asdf_plugin "cairo-coverage" "https://github.com/software-mansion/asdf-cairo-coverage.git"
   install_latest_asdf_plugin "cairo-profiler" "https://github.com/software-mansion/asdf-cairo-profiler.git"
+
+  install_scarb
 
   for tool in $tools_list; do
     install_latest_version "$tool"
@@ -110,10 +114,10 @@ assert_dependencies() {
 }
 
 assert_not_installed_outside_asdf() {
-  tools_list="$*"
+  _tools_list="$*"
   _installed_tools=""
 
-  for _tool in $tools_list; do
+  for _tool in $_tools_list; do
     _uninst_instructions=""
     _tool_cmds=""
 
@@ -243,6 +247,21 @@ ensure() {
 install_vscode_plugin() {
   if check_cmd code; then
     code --install-extension StarkWare.cairo1
+  fi
+}
+
+# TODO(maciektr): remove this function and install latest scarb version
+install_scarb() {
+  if check_version_installed "scarb" "$SCARB_VERSION"; then
+    say "scarb $SCARB_VERSION is already installed"
+  else
+    ensure asdf install scarb "$SCARB_VERSION"
+  fi
+
+  if is_asdf_legacy; then
+    ensure asdf global scarb "$SCARB_VERSION"
+  else
+    ensure asdf set --home scarb "$SCARB_VERSION"
   fi
 }
 
