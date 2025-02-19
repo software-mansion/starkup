@@ -24,9 +24,8 @@ jobs:
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Scarb version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+          # TODO(maciektr): remove this function and install latest scarb version
+          echo "LATEST=2.9.3" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
@@ -87,9 +86,8 @@ jobs:
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Scarb version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+          # TODO(maciektr): remove this function and install latest scarb version
+          echo "LATEST=2.9.3" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
