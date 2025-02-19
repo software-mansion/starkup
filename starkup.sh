@@ -58,6 +58,7 @@ main() {
   assert_not_installed_outside_asdf "$tools_list"
 
   install_universal_sierra_compiler
+  install_vscode_plugin
 
   # todo(scarb#1989): after profiler and coverage have shorthand plugin names,
   # move plugin installation into the for loop below
@@ -237,6 +238,12 @@ check_cmd() {
 
 ensure() {
   if ! "$@"; then err "command failed: $*"; fi
+}
+
+install_vscode_plugin() {
+  if check_cmd code; then
+    code --install-extension StarkWare.cairo1
+  fi
 }
 
 get_asdf_version() {
