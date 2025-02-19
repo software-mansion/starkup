@@ -2,16 +2,19 @@
 
 set -eu
 
+SCRIPT_VERSION="0.2.0"
+
+ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
-SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
-# TODO(#2): Link snfoundry uninstall docs once they are available
-LOCAL_BIN="${HOME}/.local/bin"
-LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
-STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
-SCRIPT_VERSION="0.2.0"
-DEFAULT_ASDF_VERSION="v0.16.2"
+
+LOCAL_BIN="${HOME}/.local/bin"
+LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
+
+SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
+# TODO(#2): Link snfoundry uninstall docs once they are available
+GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
 usage() {
   cat <<EOF
@@ -50,17 +53,23 @@ main() {
   done
 
   assert_dependencies "$_need_interaction"
-  assert_not_installed_outside_asdf
 
-  install_latest_asdf_plugin "scarb"
-  install_latest_version "scarb"
-  set_global_latest_version "scarb"
+  tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
+  assert_not_installed_outside_asdf "$tools_list"
 
   install_universal_sierra_compiler
 
+  # todo(scarb#1989): after profiler and coverage have shorthand plugin names,
+  # move plugin installation into the for loop below
+  install_latest_asdf_plugin "scarb"
   install_latest_asdf_plugin "starknet-foundry"
-  install_latest_version "starknet-foundry"
-  set_global_latest_version "starknet-foundry"
+  install_latest_asdf_plugin "cairo-coverage" "https://github.com/software-mansion/asdf-cairo-coverage.git"
+  install_latest_asdf_plugin "cairo-profiler" "https://github.com/software-mansion/asdf-cairo-profiler.git"
+
+  for tool in $tools_list; do
+    install_latest_version "$tool"
+    set_global_latest_version "$tool"
+  done
 
   _completion_message=""
 
@@ -100,9 +109,10 @@ assert_dependencies() {
 }
 
 assert_not_installed_outside_asdf() {
+  tools_list="$*"
   _installed_tools=""
 
-  for _tool in "scarb" "starknet-foundry"; do
+  for _tool in $tools_list; do
     _uninst_instructions=""
     _tool_cmds=""
 
@@ -112,8 +122,16 @@ assert_not_installed_outside_asdf() {
       _tool_cmds="scarb"
       ;;
     "starknet-foundry")
-      _uninst_instructions="$STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS"
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/snforge and sncast/g")
       _tool_cmds="snforge sncast"
+      ;;
+    "cairo-coverage")
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/cairo-coverage/g")
+      _tool_cmds="cairo-coverage"
+      ;;
+    "cairo-profiler")
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/cairo-profiler/g")
+      _tool_cmds="cairo-profiler"
       ;;
     esac
 
@@ -133,10 +151,11 @@ assert_not_installed_outside_asdf() {
 
 install_latest_asdf_plugin() {
   _plugin="$1"
+  _url=${2:-""}
   if check_asdf_plugin_installed "$_plugin"; then
     ensure asdf plugin update "$_plugin"
   else
-    ensure asdf plugin add "$_plugin"
+    ensure asdf plugin add "$_plugin" "$_url"
   fi
 }
 
@@ -256,8 +275,8 @@ install_asdf() {
 
     # shellcheck disable=SC2015
     _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
-      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
-      _latest_version="$DEFAULT_ASDF_VERSION"
+      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${ASDF_DEFAULT_VERSION}."
+      _latest_version="$ASDF_DEFAULT_VERSION"
     }
 
     say "Installing asdf-vm ${_latest_version}..."
