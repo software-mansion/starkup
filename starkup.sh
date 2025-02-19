@@ -5,9 +5,13 @@ set -eu
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
-STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from $HOME/.local/bin"
-SCRIPT_VERSION="0.1.0"
-DEFAULT_ASDF_VERSION="v0.15.0"
+LOCAL_BIN="${HOME}/.local/bin"
+LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
+ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
+ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
+STARKNET_FOUNDRY_UNINSTALL_INSTRUCTIONS="Try removing snforge and sncast binaries from ${LOCAL_BIN}"
+SCRIPT_VERSION="0.2.0"
+DEFAULT_ASDF_VERSION="v0.16.2"
 
 usage() {
   cat <<EOF
@@ -18,11 +22,14 @@ Usage: $0 [OPTIONS]
 Options:
   -h, --help      Print help
   -V, --version   Print script version
+  -y, --yes       Disable confirmation prompt
 
 EOF
 }
 
 main() {
+  _need_interaction=true
+
   for arg in "$@"; do
     case "$arg" in
     -h | --help)
@@ -33,13 +40,16 @@ main() {
       say "starkup $SCRIPT_VERSION"
       exit 0
       ;;
+    -y | --yes)
+      _need_interaction=false
+      ;;
     *)
       err "invalid option '$arg'. For more information, try '--help'."
       ;;
     esac
   done
 
-  assert_dependencies
+  assert_dependencies "$_need_interaction"
   assert_not_installed_outside_asdf
 
   install_latest_asdf_plugin "scarb"
@@ -52,7 +62,6 @@ main() {
   install_latest_version "starknet-foundry"
   set_global_latest_version "starknet-foundry"
 
-  _shell_config=""
   _completion_message=""
 
   case ${SHELL:-""} in
@@ -73,23 +82,20 @@ main() {
     _completion_message="Run '. ${_shell_config}'"
     ;;
   *)
+    say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
     _completion_message="Source your shell configuration file"
     ;;
   esac
-
-  if ! check_cmd universal-sierra-compiler; then
-    _local_bin="${HOME}/.local/bin"
-    say "Couldn't finish universal-sierra-compiler installation, try manually adding ${_local_bin} to your PATH."
-  fi
 
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
 }
 
 assert_dependencies() {
+  _need_interaction="$1"
   need_cmd curl
   need_cmd git
   if ! check_cmd asdf; then
-    install_asdf_interactively
+    install_asdf "$_need_interaction"
   fi
 }
 
@@ -224,61 +230,79 @@ is_asdf_legacy() {
   printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xqvF "0.16.0"
 }
 
-install_asdf_interactively() {
-  _profile=""
-  _pref_shell=""
-  _completion_message=""
-  _asdf_path="$HOME/.asdf"
-
-  case ${SHELL:-""} in
-  */zsh)
-    _profile=$HOME/.zshrc
-    _pref_shell=zsh
-    _completion_message="Run 'source ${_profile}'"
-    ;;
-  */bash)
-    if [ "$(uname)" = "Darwin" ]; then
-      _profile=$HOME/.bash_profile
+install_asdf() {
+  _need_interaction="$1"
+  _answer=""
+  if "$_need_interaction"; then
+    say "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${ASDF_INSTALL_DOCS}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
+    if [ ! -t 0 ]; then
+      # Starkup is going to want to ask for confirmation by
+      # reading stdin. This script may be piped into `sh` though
+      # and wouldn't have stdin to pass to its children. Instead we're
+      # going to explicitly connect /dev/tty to the installer's stdin.
+      if [ ! -t 1 ] || [ ! -r /dev/tty ]; then
+        err "Unable to run interactively."
+      fi
+      read -r _answer </dev/tty
     else
-      _profile=$HOME/.bashrc
+      read -r _answer
     fi
-    _pref_shell=bash
-    _completion_message="Run 'source ${_profile}'"
-    ;;
-  */sh)
-    _profile=$HOME/.profile
-    _pref_shell="sh"
-    _completion_message="Run '. ${_profile}'"
-    ;;
-  esac
-
-  if [ -z "$_profile" ] || [ -z "$_pref_shell" ]; then
-    err "asdf-vm is required. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
-  fi
-
-  touch "$_profile"
-
-  say "asdf-vm is required. Do you want to install it now? (y/N): "
-  # Starkup is going to want to ask for confirmation by
-  # reading stdin. This script may be piped into `sh` though
-  # and wouldn't have stdin to pass to its children. Instead we're
-  # going to explicitly connect /dev/tty to the installer's stdin.
-  if [ ! -t 0 ] && [ -r /dev/tty ]; then
-    read -r answer </dev/tty
   else
-    read -r answer
+    _answer="y"
   fi
-  if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    # TODO: https://github.com/software-mansion/scarb/issues/1938
-    #   Support newer versions of asdf-vm
-    _version="$DEFAULT_ASDF_VERSION"
-    say "Installing asdf-vm ${_version}..."
-    git clone --quiet -c advice.detachedHead=false https://github.com/asdf-vm/asdf.git "$_asdf_path" --branch "$_version"
 
-    echo >>"$_profile" && echo ". ${_asdf_path}/asdf.sh" >>"$_profile"
+  if [ "$_answer" = "y" ] || [ "$_answer" = "Y" ]; then
+    need_cmd tar
 
-    say "asdf-vm has been installed. ${_completion_message} or start a new terminal session and re-run this script."
-    exit 0
+    # shellcheck disable=SC2015
+    _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
+      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${DEFAULT_ASDF_VERSION}."
+      _latest_version="$DEFAULT_ASDF_VERSION"
+    }
+
+    say "Installing asdf-vm ${_latest_version}..."
+
+    _os="$(uname -s)"
+    _arch="$(uname -m)"
+    case "${_os}-${_arch}" in
+    "Linux-x86_64") _platform="linux-amd64" ;;
+    "Linux-aarch64") _platform="linux-arm64" ;;
+    "Linux-i386" | "Linux-i686") _platform="linux-386" ;;
+    "Darwin-x86_64") _platform="darwin-amd64" ;;
+    "Darwin-arm64") _platform="darwin-arm64" ;;
+    *) err "Unsupported platform ${_os}-${_arch}. Please install asdf-vm manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}." ;;
+    esac
+
+    mkdir -p "$LOCAL_BIN"
+
+    curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_latest_version}/asdf-${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+
+    export PATH="${LOCAL_BIN}:$PATH"
+    export PATH="${ASDF_SHIMS}:$PATH"
+
+    _profile=""
+    case ${SHELL:-""} in
+    */zsh)
+      _profile=$HOME/.zshrc
+      ;;
+    */bash)
+      if [ "$(uname)" = "Darwin" ]; then
+        _profile=$HOME/.bash_profile
+      else
+        _profile=$HOME/.bashrc
+      fi
+      ;;
+    */sh)
+      _profile=$HOME/.profile
+      ;;
+    esac
+
+    if [ -n "$_profile" ]; then
+      touch "$_profile"
+      echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
+      echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
+    fi
+    say "asdf-vm has been installed."
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
