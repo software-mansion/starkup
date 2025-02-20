@@ -354,7 +354,7 @@ update_asdf() {
     return
   fi
 
-  if ! command -v asdf | grep -xq "${LOCAL_BIN}/asdf"; then
+  if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
     say "asdf-vm $_current_version is not managed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
