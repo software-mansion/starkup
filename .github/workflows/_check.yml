@@ -143,7 +143,7 @@ jobs:
         run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
 
   test-asdf-update:
-    name: test ${{ inputs.os }}
+    name: test ${{ inputs.os }} (update asdf)
     env:
       ASDF_VERSION: v0.16.0
     runs-on: ${{ inputs.os }}
