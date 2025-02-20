@@ -141,3 +141,44 @@ jobs:
 
       - name: Check Cairo Profiler latest
         run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
+
+  test-asdf-update:
+    name: test ${{ inputs.os }}
+    env:
+      ASDF_VERSION: v0.16.0
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest asdf version from GitHub releases
+        id: asdf_version
+        run: |
+          latest_version=$(curl -s --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d '",')
+          echo "Latest asdf version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Setup outdated asdf
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            ASDF_PLATFORM="linux-amd64"
+          else
+            ASDF_PLATFORM="darwin-arm64"
+          fi
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/${ASDF_VERSION}/asdf-${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
+
+      - name: Check asdf out-of-date
+        shell: bash
+        run: asdf --version | grep "$ASDF_VERSION"
+
+      - name: Run starkup
+        shell: bash
+        env:
+          SHELL: /bin/bash
+        run: ./starkup.sh -y
+
+      - name: Check asdf latest
+        shell: bash
+        run: asdf --version | grep "${{ steps.asdf_version.outputs.LATEST }}"
