@@ -8,6 +8,7 @@ SCARB_VERSION="2.9.3"
 
 ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
+ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 
@@ -272,7 +273,7 @@ get_asdf_version() {
 # asdf versions < 0.16.0 are legacy
 is_asdf_legacy() {
   _version=$(get_asdf_version)
-  printf '%s\n%s' "$_version" "0.16.0" | sort -V | head -n1 | grep -xqvF "0.16.0"
+  version_less_than "$_version" "0.16.0"
 }
 
 install_asdf() {
@@ -305,22 +306,7 @@ install_asdf() {
       _latest_version="$ASDF_DEFAULT_VERSION"
     }
 
-    say "Installing asdf-vm ${_latest_version}..."
-
-    _os="$(uname -s)"
-    _arch="$(uname -m)"
-    case "${_os}-${_arch}" in
-    "Linux-x86_64") _platform="linux-amd64" ;;
-    "Linux-aarch64") _platform="linux-arm64" ;;
-    "Linux-i386" | "Linux-i686") _platform="linux-386" ;;
-    "Darwin-x86_64") _platform="darwin-amd64" ;;
-    "Darwin-arm64") _platform="darwin-arm64" ;;
-    *) err "Unsupported platform ${_os}-${_arch}. Please install asdf-vm manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}." ;;
-    esac
-
-    mkdir -p "$LOCAL_BIN"
-
-    curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_latest_version}/asdf-${_latest_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+    download_asdf "$_latest_version"
 
     export PATH="${LOCAL_BIN}:$PATH"
     export PATH="${ASDF_SHIMS}:$PATH"
@@ -351,6 +337,57 @@ install_asdf() {
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
+}
+
+update_asdf() {
+  _need_interaction="$1"
+
+  _current_version=$(get_asdf_version)
+  if is_asdf_legacy; then
+    say "asdf-vm $_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
+    return
+  fi
+
+  if ! command -v asdf | grep -xq "${LOCAL_BIN}/asdf"; then
+    say "asdf-vm $_current_version is not managed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
+    return
+  fi
+
+  _latest_version=$(get_latest_gh_version "asdf-vm/asdf") || _latest_version="$ASDF_DEFAULT_VERSION"
+  if ! version_less_than "$_current_version" "$_latest_version"; then
+    say "asdf-vm is up to date."
+    return
+  fi
+
+  download_asdf "$_latest_version"
+  say "asdf-vm updated to $_latest_version."
+}
+
+download_asdf() {
+  _version="$1"
+
+  say "Downloading asdf-vm $_version..."
+
+  _os="$(uname -s)"
+  _arch="$(uname -m)"
+  case "${_os}-${_arch}" in
+  "Linux-x86_64") _platform="linux-amd64" ;;
+  "Linux-aarch64") _platform="linux-arm64" ;;
+  "Linux-i386" | "Linux-i686") _platform="linux-386" ;;
+  "Darwin-x86_64") _platform="darwin-amd64" ;;
+  "Darwin-arm64") _platform="darwin-arm64" ;;
+  *) err "Unsupported platform ${_os}-${_arch}." ;;
+  esac
+
+  mkdir -p "$LOCAL_BIN"
+
+  curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_version}/asdf-${_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+}
+
+version_less_than() {
+  _version1="$1"
+  _version2="$2"
+  printf '%s\n%s' "$_version1" "$_version2" | sort -V | head -n1 | grep -xqvF "$_version2"
 }
 
 main "$@" || exit 1
