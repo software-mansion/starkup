@@ -111,6 +111,8 @@ assert_dependencies() {
   need_cmd git
   if ! check_cmd asdf; then
     install_asdf "$_need_interaction"
+  else
+    update_asdf "$_need_interaction"
   fi
 }
 
