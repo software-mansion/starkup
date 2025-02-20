@@ -208,7 +208,7 @@ set_global_latest_version() {
 
 get_latest_gh_version() {
   _repo="$1"
-  curl -sS --fail "https://api.github.com/repos/${_repo}/releases/latest" | awk -F'"' '/"tag_name"/ {print $4}'
+  curl -sS --fail "https://api.github.com/repos/${_repo}/releases/latest" | awk -F'"' '/"tag_name"/ {print $4}' | sed 's/^v//'
 }
 
 install_universal_sierra_compiler() {
@@ -383,7 +383,7 @@ download_asdf() {
 
   mkdir -p "$LOCAL_BIN"
 
-  curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/${_version}/asdf-${_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+  curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/v${_version}/asdf-v${_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
 }
 
 version_less_than() {
