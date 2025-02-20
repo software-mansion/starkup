@@ -145,7 +145,7 @@ jobs:
   test-asdf-update:
     name: test ${{ inputs.os }} (update asdf)
     env:
-      ASDF_VERSION: v0.16.0
+      ASDF_VERSION: 0.16.0
     runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v4
@@ -153,7 +153,7 @@ jobs:
       - name: Fetch latest asdf version from GitHub releases
         id: asdf_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d '",')
+          latest_version=$(curl -s --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest asdf version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -165,7 +165,7 @@ jobs:
             ASDF_PLATFORM="darwin-arm64"
           fi
           mkdir -p "$HOME/.local/bin"
-          curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/${ASDF_VERSION}/asdf-${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C "$HOME/.local/bin"
+          curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/v${ASDF_VERSION}/asdf-v${ASDF_VERSION}-${ASDF_PLATFORM}.tar.gz" | tar xzf - -C "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
