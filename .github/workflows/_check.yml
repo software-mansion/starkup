@@ -185,3 +185,26 @@ jobs:
       - name: Check asdf latest
         shell: bash
         run: asdf --version | grep -x "asdf version v${{ steps.asdf_version.outputs.LATEST }}"
+
+  verify-asdf-default-version:
+    name: test ${{ inputs.os }} (verify default version)
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch latest asdf version from GitHub releases
+        id: asdf_version
+        run: |
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest asdf version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check ASDF_DEFAULT_VERSION is latest
+        run: |
+          default_version=$(grep "^ASDF_DEFAULT_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.asdf_version.outputs.LATEST }}
+          if [ "latest_version" != "$default_version" ]; then
+            echo "ASDF_DEFAULT_VERSION ($default_version) is not the latest version ($latest_version)."
+            echo "Please update ASDF_DEFAULT_VERSION in starkup.sh to $latest_version."
+            exit 1
+          fi
