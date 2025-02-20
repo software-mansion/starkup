@@ -203,7 +203,7 @@ jobs:
         run: |
           default_version=$(grep "^ASDF_DEFAULT_VERSION=" starkup.sh | cut -d'"' -f2)
           latest_version=${{ steps.asdf_version.outputs.LATEST }}
-          if [ "latest_version" != "$default_version" ]; then
+          if [ "$latest_version" != "$default_version" ]; then
             echo "ASDF_DEFAULT_VERSION ($default_version) is not the latest version ($latest_version)."
             echo "Please update ASDF_DEFAULT_VERSION in starkup.sh to $latest_version."
             exit 1
