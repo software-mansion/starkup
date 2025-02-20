@@ -6,6 +6,7 @@ env:
 on:
   schedule:
     - cron: "0 5 * * 1-5" # 5:00 AM UTC, Monday to Friday
+  pull_request:
 
 jobs:
   check-asdf-version-latest:
