@@ -112,7 +112,7 @@ assert_dependencies() {
   if ! check_cmd asdf; then
     install_asdf "$_need_interaction"
   else
-    update_asdf "$_need_interaction"
+    update_asdf
   fi
 }
 
@@ -342,8 +342,6 @@ install_asdf() {
 }
 
 update_asdf() {
-  _need_interaction="$1"
-
   _current_version=$(get_asdf_version)
   if is_asdf_legacy; then
     say "asdf-vm $_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
