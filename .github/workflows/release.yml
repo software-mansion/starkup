@@ -60,9 +60,9 @@ jobs:
       - name: Draft GitHub release
         run: |
           gh release create \
-            '$RELEASE_TAG' \
+            "$RELEASE_TAG" \
             --draft \
-            --title '$RELEASE_TAG' \
+            --title "$RELEASE_TAG" \
             --generate-notes \
             --verify-tag
         env:
