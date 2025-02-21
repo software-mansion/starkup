@@ -217,7 +217,7 @@ get_latest_gh_version_or_default() {
 
   # shellcheck disable=SC2015
   _latest_version=$(get_latest_gh_version "$_repo") && [ -n "$_latest_version" ] || {
-    say "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version."
+    say "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version." >&2
     _latest_version="$_default_version"
   }
 
