@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.2.1"
+SCRIPT_VERSION="0.2.2"
 
 SCARB_VERSION="2.9.3"
 
