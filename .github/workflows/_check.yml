@@ -25,7 +25,7 @@ jobs:
         id: scarb_version
         run: |
           # TODO(maciektr): remove this function and install latest scarb version
-          echo "LATEST=2.9.3" >> $GITHUB_OUTPUT
+          echo "LATEST=2.9.4" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
@@ -87,7 +87,7 @@ jobs:
         id: scarb_version
         run: |
           # TODO(maciektr): remove this function and install latest scarb version
-          echo "LATEST=2.9.3" >> $GITHUB_OUTPUT
+          echo "LATEST=2.9.4" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
