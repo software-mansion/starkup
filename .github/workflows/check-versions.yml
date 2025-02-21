@@ -53,5 +53,5 @@ jobs:
           
           gh pr create \
             --title "chore: bump asdf default version to ${{ steps.check.outputs.NEW_VERSION }}" \
-            --body "Update ASDF_DEFAULT_VERSION from ${{ steps.check.outputs.OLD_VERSION }} to ${{ steps.check.outputs.NEW_VERSION }}." \
+            --body "Update `ASDF_DEFAULT_VERSION` from `${{ steps.check.outputs.OLD_VERSION }}` to `${{ steps.check.outputs.NEW_VERSION }}`." \
             --label "dependencies"
