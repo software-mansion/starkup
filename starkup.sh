@@ -211,6 +211,19 @@ get_latest_gh_version() {
   curl -sS --fail "https://api.github.com/repos/${_repo}/releases/latest" | awk -F'"' '/"tag_name"/ {print $4}' | sed 's/^v//'
 }
 
+get_latest_gh_version_or_default() {
+  _repo="$1"
+  _default_version="$2"
+
+  # shellcheck disable=SC2015
+  _latest_version=$(get_latest_gh_version "$_repo") && [ -n "$_latest_version" ] || {
+    say "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version."
+    _latest_version="$_default_version"
+  }
+
+  echo "$_latest_version"
+}
+
 install_universal_sierra_compiler() {
   _version=""
   _latest_version=""
@@ -302,11 +315,7 @@ install_asdf() {
   if [ "$_answer" = "y" ] || [ "$_answer" = "Y" ]; then
     need_cmd tar
 
-    # shellcheck disable=SC2015
-    _latest_version=$(get_latest_gh_version "asdf-vm/asdf") && [ -n "$_latest_version" ] || {
-      say "Failed to fetch latest asdf version (possibly due to GitHub server rate limit or error). Using default version ${ASDF_DEFAULT_VERSION}."
-      _latest_version="$ASDF_DEFAULT_VERSION"
-    }
+    _latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
 
     download_asdf "$_latest_version"
 
@@ -348,7 +357,7 @@ update_asdf() {
     return
   fi
 
-  _latest_version=$(get_latest_gh_version "asdf-vm/asdf") || _latest_version="$ASDF_DEFAULT_VERSION"
+  _latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
   if ! version_less_than "$_current_version" "$_latest_version"; then
     say "asdf-vm is up to date."
     return
