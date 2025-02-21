@@ -4,7 +4,7 @@ set -eu
 
 SCRIPT_VERSION="0.2.1"
 
-SCARB_VERSION="2.9.3"
+SCARB_VERSION="2.9.4"
 
 ASDF_DEFAULT_VERSION="v0.16.2"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
