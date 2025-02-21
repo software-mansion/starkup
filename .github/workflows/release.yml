@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write 
   id-token: write
 
 jobs:
@@ -56,3 +56,14 @@ jobs:
           echo "RELEASE_TAG: $RELEASE_TAG"
           echo "STARKUP_TAG: $STARKUP_TAG"
           [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Release verification failed."; exit 1; }
+
+      - name: Draft GitHub release
+        run: |
+          gh release create \
+            '$RELEASE_TAG' \
+            --draft \
+            --title '$RELEASE_TAG' \
+            --generate-notes \
+            --verify-tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
