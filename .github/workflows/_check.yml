@@ -7,6 +7,9 @@ on:
         required: true
         type: string
 
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
 jobs:
   test-legacy-asdf:
     name: test ${{ inputs.os }} (legacy asdf)
@@ -30,28 +33,28 @@ jobs:
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Starknet Foundry version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Universal Sierra Compiler version from GitHub releases
         id: usc_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Cairo Coverage version from GitHub releases
         id: coverage_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Cairo Coverage version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Cairo Profiler version from GitHub releases
         id: profiler_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Cairo Profiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -59,21 +62,21 @@ jobs:
         run: ./starkup.sh
 
       - name: Check Scarb latest
-        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+        run: scarb --version | grep -x "scarb ${{ steps.scarb_version.outputs.LATEST }} (.*)"
 
       - name: Check Starknet Foundry latest
         run: |
-          snforge --version | grep "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
-          sncast --version | grep "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+          snforge --version | grep -x "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
+          sncast --version | grep -x "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
 
       - name: Check Universal Sierra Compiler latest
-        run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+        run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ steps.usc_version.outputs.LATEST }}"
 
       - name: Check Cairo Coverage latest
-        run: cairo-coverage --version | grep "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
 
       - name: Check Cairo Profiler latest
-        run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
 
   test:
     name: test ${{ inputs.os }}
@@ -92,28 +95,28 @@ jobs:
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: snfoundry_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Starknet Foundry version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Universal Sierra Compiler version from GitHub releases
         id: usc_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Universal Sierra Compiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Cairo Coverage version from GitHub releases
         id: coverage_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Cairo Coverage version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
       - name: Fetch latest Cairo Profiler version from GitHub releases
         id: profiler_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Cairo Profiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -126,21 +129,21 @@ jobs:
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
-        run: scarb --version | grep "scarb ${{ steps.scarb_version.outputs.LATEST }}"
+        run: scarb --version | grep -x "scarb ${{ steps.scarb_version.outputs.LATEST }} (.*)"
 
       - name: Check Starknet Foundry latest
         run: |
-          snforge --version | grep "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
-          sncast --version | grep "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+          snforge --version | grep -x "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
+          sncast --version | grep -x "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
 
       - name: Check Universal Sierra Compiler latest
-        run: universal-sierra-compiler --version | grep "universal-sierra-compiler ${LATEST}"
+        run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ steps.usc_version.outputs.LATEST }}"
 
       - name: Check Cairo Coverage latest
-        run: cairo-coverage --version | grep "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
 
       - name: Check Cairo Profiler latest
-        run: cairo-profiler --version | grep "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
 
   test-asdf-update:
     name: test ${{ inputs.os }} (update asdf)
@@ -153,7 +156,7 @@ jobs:
       - name: Fetch latest asdf version from GitHub releases
         id: asdf_version
         run: |
-          latest_version=$(curl -s --fail https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest asdf version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -171,7 +174,7 @@ jobs:
 
       - name: Check asdf out-of-date
         shell: bash
-        run: asdf --version | grep "$ASDF_VERSION"
+        run: asdf --version | grep -x "asdf version v$ASDF_VERSION"
 
       - name: Run starkup
         shell: bash
@@ -181,4 +184,4 @@ jobs:
 
       - name: Check asdf latest
         shell: bash
-        run: asdf --version | grep "${{ steps.asdf_version.outputs.LATEST }}"
+        run: asdf --version | grep -x "asdf version v${{ steps.asdf_version.outputs.LATEST }}"
