@@ -1,0 +1,57 @@
+name: Check Versions
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+on:
+  schedule:
+    - cron: "0 5 * * 1-5" # 5:00 AM UTC, Monday to Friday
+  pull_request:
+
+jobs:
+  check-asdf-version-latest:
+    name: Check default asdf version is latest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch latest asdf version from GitHub releases
+        id: asdf_version
+        run: |
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest asdf version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check
+        run: |
+          default_version=$(grep "^ASDF_DEFAULT_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.asdf_version.outputs.LATEST }}
+          if [ "$latest_version" != "$default_version" ]; then
+            echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
+            echo "OLD_VERSION=$default_version" >> $GITHUB_OUTPUT
+            echo "NEW_VERSION=$latest_version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR for version update
+        if: steps.check.outputs.UPDATE_NEEDED == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          branch_name="bump-asdf-${{ steps.check.outputs.NEW_VERSION }}"
+          git checkout -b "$branch_name"
+          
+          sed -i "s/ASDF_DEFAULT_VERSION=\"${{ steps.check.outputs.OLD_VERSION }}\"/ASDF_DEFAULT_VERSION=\"${{ steps.check.outputs.NEW_VERSION }}\"/" starkup.sh
+          
+          git add starkup.sh
+          git commit -m "chore: bump asdf default version to ${{ steps.check.outputs.NEW_VERSION }}"
+          git push origin "$branch_name"
+          
+          gh pr create \
+            --title "chore: bump asdf default version to ${{ steps.check.outputs.NEW_VERSION }}" \
+            --body "Update \`ASDF_DEFAULT_VERSION\` from \`${{ steps.check.outputs.OLD_VERSION }}\` to \`${{ steps.check.outputs.NEW_VERSION }}\`." \
+            --label "dependencies"
