@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write 
+  contents: write
   id-token: write
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ github.ref_name }}
     steps:
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Check script version
@@ -52,7 +52,7 @@ jobs:
       - name: Verify release
         run: |
           sleep 5
-          STARKUP_TAG=$(curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.dev | sh -s -- --version)
+          STARKUP_TAG=$(curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh -s -- --version)
           echo "RELEASE_TAG: $RELEASE_TAG"
           echo "STARKUP_TAG: $STARKUP_TAG"
           [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Release verification failed."; exit 1; }
