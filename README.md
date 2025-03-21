@@ -32,7 +32,7 @@ The following version sets are available:
 To install a specific version set (e.g. `latest`), run the following:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.dev | sh -s -- --version-set latest
+curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh -s -- --version-set latest
 ```
 
 ## Architecture
