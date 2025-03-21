@@ -21,6 +21,20 @@ Starkup supports the installation of the following tools:
 - [Cairo Coverage] utility for coverage reports generation for code written in Cairo programming language
 - [CairoLS] vscode extension
 
+## Installing specific versions
+
+Starkup allows you to choose which versions of tools to install using the `--version-set` flag.
+The following version sets are available:
+
+- `compatible` (default): Installs versions of all tools that are known to be compatible with each other
+- `latest`: Installs latest versions of all tools, which **may be incompatible** with each other
+
+To install a specific version set (e.g. `latest`), run the following:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.dev | sh -s -- --version-set latest
+```
+
 ## Architecture
 
 Starkup relies on [ASDF] package manager to install the latest versions of [Scarb] and [Starknet Foundry]. If you don't have [ASDF] yet, no worries - Starkup can handle that as well!
