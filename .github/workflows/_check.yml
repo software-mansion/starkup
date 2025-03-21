@@ -9,6 +9,10 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ github.token }}
+  SCARB_COMPATIBLE_VERSION: 2.10.1
+  FOUNDRY_COMPATIBLE_VERSION: 0.39.0
+  COVERAGE_COMPATIBLE_VERSION: 0.5.0
+  PROFILER_COMPATIBLE_VERSION: 0.8.1
 
 jobs:
   test-legacy-asdf:
@@ -24,65 +28,59 @@ jobs:
         with:
           asdf_branch: ${{ env.ASDF_VERSION }}
 
-      - name: Fetch latest Scarb version from GitHub releases
-        id: scarb_version
-        run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Scarb version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
-
-      - name: Fetch latest Starknet Foundry version from GitHub releases
-        id: snfoundry_version
-        run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Starknet Foundry version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
-
-      - name: Fetch latest Universal Sierra Compiler version from GitHub releases
-        id: usc_version
-        run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/universal-sierra-compiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Universal Sierra Compiler version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
-
-      - name: Fetch latest Cairo Coverage version from GitHub releases
-        id: coverage_version
-        run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-coverage/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Cairo Coverage version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
-
-      - name: Fetch latest Cairo Profiler version from GitHub releases
-        id: profiler_version
-        run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/cairo-profiler/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
-          echo "Latest Cairo Profiler version found is $latest_version"
-          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
-
       - name: Run starkup
         run: ./starkup.sh
 
-      - name: Check Scarb latest
-        run: scarb --version | grep -x "scarb ${{ steps.scarb_version.outputs.LATEST }} (.*)"
+      - name: Check Scarb compatible
+        run: scarb --version | grep -x "scarb ${{ env.SCARB_COMPATIBLE_VERSION }} (.*)"
 
-      - name: Check Starknet Foundry latest
+      - name: Check Starknet Foundry compatible
         run: |
-          snforge --version | grep -x "snforge ${{ steps.snfoundry_version.outputs.LATEST }}"
-          sncast --version | grep -x "sncast ${{ steps.snfoundry_version.outputs.LATEST }}"
+          snforge --version | grep -x "snforge ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
+          sncast --version | grep -x "sncast ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
 
-      - name: Check Universal Sierra Compiler latest
-        run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ steps.usc_version.outputs.LATEST }}"
+      - name: Check Universal Sierra Compiler compatible
+        run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ env.SCARB_COMPATIBLE_VERSION }}"
 
-      - name: Check Cairo Coverage latest
-        run: cairo-coverage --version | grep -x "cairo-coverage ${{ steps.coverage_version.outputs.LATEST }}"
+      - name: Check Cairo Coverage compatible
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ env.COVERAGE_COMPATIBLE_VERSION }}"
 
-      - name: Check Cairo Profiler latest
-        run: cairo-profiler --version | grep -x "cairo-profiler ${{ steps.profiler_version.outputs.LATEST }}"
+      - name: Check Cairo Profiler compatible
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
 
   test:
-    name: test ${{ inputs.os }}
-    env:
-      ASDF_VERSION: v0.16.2
+    name: test ${{ inputs.os }} (compatible versions)
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run starkup
+        shell: bash
+        env:
+          SHELL: /bin/bash
+        run: |
+          ./starkup.sh -y
+          echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
+
+      - name: Check Scarb compatible
+        run: scarb --version | grep -x "scarb ${{ env.SCARB_COMPATIBLE_VERSION }} (.*)"
+
+      - name: Check Starknet Foundry compatible
+        run: |
+          snforge --version | grep -x "snforge ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
+          sncast --version | grep -x "sncast ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
+
+      - name: Check Universal Sierra Compiler compatible
+        run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ env.SCARB_COMPATIBLE_VERSION }}"
+
+      - name: Check Cairo Coverage compatible
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ env.COVERAGE_COMPATIBLE_VERSION }}"
+
+      - name: Check Cairo Profiler compatible
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
+
+  test-latest:
+    name: test ${{ inputs.os }} (latest versions)
     runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v4
@@ -122,12 +120,12 @@ jobs:
           echo "Latest Cairo Profiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
-      - name: Run starkup
+      - name: Run starkup with latest version set
         shell: bash
         env:
           SHELL: /bin/bash
         run: |
-          ./starkup.sh -y
+          ./starkup.sh -y --version-set latest
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb latest
