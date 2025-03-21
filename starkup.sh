@@ -17,6 +17,12 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 # TODO(#2): Link snfoundry uninstall docs once they are available
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
+# Set of latest mutually compatible tool versions
+SCARB_LATEST_COMPATIBLE_VERSION="2.10.1"
+FOUNDRY_LATEST_COMPATIBLE_VERSION="0.39.0"
+COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
+PROFILER_LATEST_COMPATIBLE_VERSION="0.8.1"
+
 usage() {
   cat <<EOF
 The installer for Starknet tools. Installs the latest versions of Scarb, Starknet Foundry and Universal Sierra Compiler using asdf.
@@ -24,36 +30,61 @@ The installer for Starknet tools. Installs the latest versions of Scarb, Starkne
 Usage: $0 [OPTIONS]
 
 Options:
-  -h, --help      Print help
-  -V, --version   Print script version
-  -y, --yes       Disable confirmation prompt
-
+  -h, --help             Print help
+  -V, --version          Print script version
+  -y, --yes              Disable confirmation prompt
+  --version-set <set>    Version set to install. Possible options: compatible (default), latest
 EOF
 }
 
 main() {
-  _need_interaction=true
+  need_interaction=true
+  version_set="compatible"
 
+  # Transform long options to short ones
   for arg in "$@"; do
+    shift
     case "$arg" in
-    -h | --help)
+    '--help') set -- "$@" '-h' ;;
+    '--version') set -- "$@" '-V' ;;
+    '--yes') set -- "$@" '-y' ;;
+    '--version-set') set -- "$@" '-s' ;;
+    *) set -- "$@" "$arg" ;;
+    esac
+  done
+
+  while getopts ":hVys:" opt; do
+    case $opt in
+    h)
       usage
       exit 0
       ;;
-    -V | --version)
+    V)
       say "starkup $SCRIPT_VERSION"
       exit 0
       ;;
-    -y | --yes)
-      _need_interaction=false
+    y)
+      need_interaction=false
       ;;
-    *)
-      err "invalid option '$arg'. For more information, try '--help'."
+    s)
+      if [ "$OPTARG" = "compatible" ] || [ "$OPTARG" = "latest" ]; then
+        version_set="$OPTARG"
+      else
+        err "invalid version set: '$OPTARG'. Valid options: 'compatible', 'latest'."
+      fi
+      ;;
+    \?)
+      err "invalid option: -$OPTARG. For more information, try '--help'."
+      ;;
+    :)
+      err "option -$OPTARG requires an argument. For more information, try '--help'."
       ;;
     esac
   done
 
-  assert_dependencies "$_need_interaction"
+  say "Installing $version_set version set..."
+
+  assert_dependencies "$need_interaction"
 
   tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
   assert_not_installed_outside_asdf "$tools_list"
@@ -69,36 +100,43 @@ main() {
   install_latest_asdf_plugin "cairo-profiler" "https://github.com/software-mansion/asdf-cairo-profiler.git"
 
   for tool in $tools_list; do
-    install_latest_version "$tool"
-    set_global_latest_version "$tool"
+    if [ "$version_set" = "latest" ]; then
+      latest_version=$(get_latest_version "$tool")
+      install_version "$tool" "$latest_version"
+      set_global_version "$tool" "$latest_version"
+    else
+      compatible_version=$(get_compatible_version "$tool")
+      install_version "$tool" "$compatible_version"
+      set_global_version "$tool" "$compatible_version"
+    fi
   done
 
-  _completion_message=""
+  completion_message=""
 
   case ${SHELL:-""} in
   */zsh)
-    _shell_config="$HOME/.zshrc"
-    _completion_message="Run 'source ${_shell_config}'"
+    shell_config="$HOME/.zshrc"
+    completion_message="Run 'source ${shell_config}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
-      _shell_config="$HOME/.bash_profile"
+      shell_config="$HOME/.bash_profile"
     else
-      _shell_config="$HOME/.bashrc"
+      shell_config="$HOME/.bashrc"
     fi
-    _completion_message="Run 'source ${_shell_config}'"
+    completion_message="Run 'source ${shell_config}'"
     ;;
   */sh)
-    _shell_config="$HOME/.profile"
-    _completion_message="Run '. ${_shell_config}'"
+    shell_config="$HOME/.profile"
+    completion_message="Run '. ${shell_config}'"
     ;;
   *)
     say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
-    _completion_message="Source your shell configuration file"
+    completion_message="Source your shell configuration file"
     ;;
   esac
 
-  say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
+  say "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
 }
 
 assert_dependencies() {
@@ -170,11 +208,23 @@ check_asdf_plugin_installed() {
 
 install_latest_version() {
   _tool="$1"
-  _latest_version=$(asdf latest "$_tool")
-  if check_version_installed "$_tool" "$_latest_version"; then
-    say "$_tool $_latest_version is already installed"
+  _latest_version=$(get_latest_version "$_tool")
+  install_version "$_tool" "$_latest_version"
+}
+
+install_compatible_version() {
+  _tool="$1"
+  _compatible_version=$(get_compatible_version "$_tool")
+  install_version "$_tool" "$_compatible_version"
+}
+
+install_version() {
+  _tool="$1"
+  _installed_version="$2"
+  if check_version_installed "$_tool" "$_installed_version"; then
+    say "$_tool $_installed_version is already installed"
   else
-    ensure asdf install "$_tool" latest
+    ensure asdf install "$_tool" "$_installed_version"
   fi
 }
 
@@ -184,21 +234,52 @@ check_version_installed() {
   asdf list "$_tool" | grep -q "^[^0-9]*${_version}$"
 }
 
-uninstall_latest_version() {
+get_latest_version() {
   _tool="$1"
-  _latest_version=$(asdf latest "$_tool")
+  asdf latest "$_tool"
+}
 
-  if asdf list "$_tool" "^${_latest_version}$" >/dev/null 2>&1; then
-    ensure asdf uninstall "$_tool" "$_latest_version"
-  fi
+get_compatible_version() {
+  _tool="$1"
+  case "$_tool" in
+  "scarb")
+    echo "$SCARB_LATEST_COMPATIBLE_VERSION"
+    ;;
+  "starknet-foundry")
+    echo "$FOUNDRY_LATEST_COMPATIBLE_VERSION"
+    ;;
+  "cairo-coverage")
+    echo "$COVERAGE_LATEST_COMPATIBLE_VERSION"
+    ;;
+  "cairo-profiler")
+    echo "$PROFILER_LATEST_COMPATIBLE_VERSION"
+    ;;
+  *)
+    err "unknown tool: $_tool"
+    ;;
+  esac
 }
 
 set_global_latest_version() {
   _tool="$1"
+  _latest_version=$(get_latest_version "$_tool")
+  set_global_version "$_tool" "$_latest_version"
+}
+
+set_global_compatible_version() {
+  _tool="$1"
+  _compatible_version=$(get_compatible_version "$_tool")
+  set_global_version "$_tool" "$_compatible_version"
+}
+
+set_global_version() {
+  _tool="$1"
+  _global_version="$2"
+
   if is_asdf_legacy; then
-    ensure asdf global "$_tool" latest
+    ensure asdf global "$_tool" "$_global_version"
   else
-    ensure asdf set --home "$_tool" latest
+    ensure asdf set --home "$_tool" "$_global_version"
   fi
 }
 
@@ -212,23 +293,23 @@ get_latest_gh_version_or_default() {
   _default_version="$2"
 
   # shellcheck disable=SC2015
-  _latest_version=$(get_latest_gh_version "$_repo") && [ -n "$_latest_version" ] || {
+  _latest_gh_version=$(get_latest_gh_version "$_repo") && [ -n "$_latest_gh_version" ] || {
     say "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version." >&2
-    _latest_version="$_default_version"
+    _latest_gh_version="$_default_version"
   }
 
-  echo "$_latest_version"
+  echo "$_latest_gh_version"
 }
 
 install_universal_sierra_compiler() {
-  _version=""
-  _latest_version=""
+  _usc_version=""
+  _usc_latest_version=""
   if check_cmd universal-sierra-compiler; then
-    _version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
-    _latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
+    _usc_version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
+    _usc_latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
   fi
 
-  if [ -z "$_version" ] || [ "$_version" != "$_latest_version" ]; then
+  if [ -z "$_usc_version" ] || [ "$_usc_version" != "$_usc_latest_version" ]; then
     curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | ${SHELL:-sh}
   fi
 }
@@ -268,8 +349,8 @@ get_asdf_version() {
 
 # asdf versions < 0.16.0 are legacy
 is_asdf_legacy() {
-  _version=$(get_asdf_version)
-  version_less_than "$_version" "0.16.0"
+  _asdf_version=$(get_asdf_version)
+  version_less_than "$_asdf_version" "0.16.0"
 }
 
 install_asdf() {
@@ -296,9 +377,9 @@ install_asdf() {
   if [ "$_answer" = "y" ] || [ "$_answer" = "Y" ]; then
     need_cmd tar
 
-    _latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
+    _asdf_latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
 
-    download_asdf "$_latest_version"
+    download_asdf "$_asdf_latest_version"
 
     export PATH="${LOCAL_BIN}:$PATH"
     export PATH="${ASDF_SHIMS}:$PATH"
@@ -332,31 +413,31 @@ install_asdf() {
 }
 
 update_asdf() {
-  _current_version=$(get_asdf_version)
+  _asdf_current_version=$(get_asdf_version)
   if is_asdf_legacy; then
-    say "asdf-vm $_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
+    say "asdf-vm $_asdf_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
     return
   fi
 
-  _latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
-  if ! version_less_than "$_current_version" "$_latest_version"; then
+  _asdf_latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
+  if ! version_less_than "$_asdf_current_version" "$_asdf_latest_version"; then
     say "asdf-vm is up to date."
     return
   fi
 
   if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
-    say "asdf-vm $_current_version is was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
+    say "asdf-vm $_asdf_current_version is was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
-  download_asdf "$_latest_version"
-  say "asdf-vm updated to $_latest_version."
+  download_asdf "$_asdf_latest_version"
+  say "asdf-vm updated to $_asdf_latest_version."
 }
 
 download_asdf() {
-  _version="$1"
+  _asdf_version="$1"
 
-  say "Downloading asdf-vm $_version..."
+  say "Downloading asdf-vm $_asdf_version..."
 
   _os="$(uname -s)"
   _arch="$(uname -m)"
