@@ -464,7 +464,7 @@ download_asdf() {
 
   mkdir -p "$LOCAL_BIN"
 
-  curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/v${_version}/asdf-v${_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
+  curl -sSL --fail "https://github.com/asdf-vm/asdf/releases/download/v${_asdf_version}/asdf-v${_asdf_version}-${_platform}.tar.gz" | tar xzf - -C "$LOCAL_BIN"
 }
 
 version_less_than() {
