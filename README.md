@@ -7,7 +7,7 @@ Starkup helps you install all the tools you will use to develop packages in [Cai
 Run the following in your terminal, then follow the onscreen instructions.
 
 ```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.dev | sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh
 ```
 
 ## Supported tools
