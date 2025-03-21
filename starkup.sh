@@ -4,6 +4,8 @@ set -eu
 
 SCRIPT_VERSION="0.2.3"
 
+REPO_URL="https://github.com/software-mansion/starkup"
+
 ASDF_DEFAULT_VERSION="0.16.5"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
@@ -116,6 +118,10 @@ main() {
       set_global_version "$tool" "$compatible_version"
     fi
   done
+
+  if [ "$version_set" = "latest" ]; then
+    say "Warning: Installed version set 'latest' might contain incompatible versions. If you encounter issues, consider using '--version-set compatible' instead. For more information, refer to ${REPO_URL}."
+  fi
 
   completion_message=""
 
