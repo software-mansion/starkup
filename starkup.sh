@@ -82,6 +82,12 @@ main() {
     esac
   done
 
+  # Check for any unprocessed arguments
+  shift $((OPTIND - 1))
+  if [ $# -gt 0 ]; then
+    err "unexpected argument: $1. For more information, try '--help'."
+  fi
+
   say "Installing $version_set version set..."
 
   assert_dependencies "$need_interaction"
