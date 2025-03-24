@@ -120,7 +120,7 @@ add_alias() {
 # Alias for running starkup installer
 $_alias_def
 EOF
-    say "Added 'starkup' alias to ${_shell_config}. Next time, run 'starkup' to update the tools or access the installer."
+    say "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
   fi
 }
 
