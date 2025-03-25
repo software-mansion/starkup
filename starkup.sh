@@ -258,7 +258,7 @@ ensure() {
 
 install_vscode_plugin() {
   if check_cmd code; then
-    code --install-extension StarkWare.cairo1
+    code --install-extension StarkWare.cairo1 --force
   fi
 }
 
