@@ -4,6 +4,8 @@ set -eu
 
 SCRIPT_VERSION="0.2.3"
 
+SCRIPT_URL="https://sh.starkup.sh"
+
 ASDF_DEFAULT_VERSION="0.16.5"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
@@ -73,6 +75,7 @@ main() {
     set_global_latest_version "$tool"
   done
 
+  _shell_config=""
   _completion_message=""
 
   case ${SHELL:-""} in
@@ -98,7 +101,27 @@ main() {
     ;;
   esac
 
+  add_alias "${_shell_config}"
+
   say "Installation complete. ${_completion_message} or start a new terminal session to use the installed tools."
+}
+
+add_alias() {
+  _shell_config="$1"
+  _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+
+  if [ -z "$_shell_config" ]; then
+    say "Could not detect shell. To simplify access to the installer, add the following to your shell configuration file:\n$_alias_def"
+    return
+  fi
+
+  if ! grep -q "^alias starkup" "${_shell_config}"; then
+    cat <<EOF >>"${_shell_config}"
+# Alias for running starkup installer
+$_alias_def
+EOF
+    say "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
+  fi
 }
 
 assert_dependencies() {
