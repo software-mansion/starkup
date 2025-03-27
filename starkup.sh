@@ -124,7 +124,7 @@ add_alias() {
   _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
 
   if [ -z "$_shell_config" ]; then
-    warn "Could not detect shell. To simplify access to the installer, add the following to your shell configuration file:\n${BOLD}$_alias_def${RESET}"
+    warn "Could not detect shell. To simplify access to the installer, add '${BOLD}$_alias_def${RESET}' to your shell configuration file."
     return
   fi
 
