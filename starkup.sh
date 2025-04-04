@@ -32,7 +32,6 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 # TODO(#2): Link snfoundry uninstall docs once they are available
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
-
 usage() {
   cat <<EOF
 The installer for Starknet tools. Installs the latest versions of Scarb, Starknet Foundry and Universal Sierra Compiler using asdf.
