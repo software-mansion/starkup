@@ -21,7 +21,7 @@ YELLOW=""
 RESET=""
 
 # Check whether colors are supported and should be enabled
-if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && command -v tput >/dev/null && [ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]; then
+if [ -z "${NO_COLOR:-}" ]; then
   BOLD="\033[1m"
   RED="\033[31m"
   YELLOW="\033[33m"
