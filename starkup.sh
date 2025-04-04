@@ -28,9 +28,10 @@ if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && command -v tput >/dev/null && [ "$(tput
   RESET="\033[0m"
 fi
 
-SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to ${BOLD}https://docs.swmansion.com/scarb/download#uninstall${RESET}"
+SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
-GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${BOLD}${LOCAL_BIN}${RESET}"
+GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
+
 
 usage() {
   cat <<EOF
@@ -94,7 +95,7 @@ main() {
   case ${SHELL:-""} in
   */zsh)
     _shell_config="$HOME/.zshrc"
-    _completion_message="Run '${BOLD}source ${_shell_config}${RESET}'"
+    _completion_message="Run 'source ${_shell_config}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -102,14 +103,14 @@ main() {
     else
       _shell_config="$HOME/.bashrc"
     fi
-    _completion_message="Run '${BOLD}source ${_shell_config}${RESET}'"
+    _completion_message="Run 'source ${_shell_config}'"
     ;;
   */sh)
     _shell_config="$HOME/.profile"
-    _completion_message="Run '${BOLD}. ${_shell_config}${RESET}'"
+    _completion_message="Run '. ${_shell_config}'"
     ;;
   *)
-    warn "Could not detect shell. Make sure ${BOLD}${LOCAL_BIN_ESCAPED}${RESET} and ${BOLD}${ASDF_SHIMS_ESCAPED}${RESET} are added to your PATH."
+    warn "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
     _completion_message="Source your shell configuration file"
     ;;
   esac
@@ -124,7 +125,7 @@ add_alias() {
   _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
 
   if [ -z "$_shell_config" ]; then
-    warn "Could not detect shell. To simplify access to the installer, add '${BOLD}$_alias_def${RESET}' to your shell configuration file."
+    warn "Could not detect shell. To simplify access to the installer, add the following to your shell configuration file:\nalias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
     return
   fi
 
@@ -278,11 +279,11 @@ info() {
 }
 
 warn() {
-  say "${BOLD}${YELLOW}warn:${RESET} $1"
+  say "${BOLD}${YELLOW}warn:${RESET} ${YELLOW}$1${RESET}"
 }
 
 err() {
-  say "${BOLD}${RED}error:${RESET} $1" >&2
+  say "${BOLD}${RED}error:${RESET} ${RED}$1${RESET}" >&2
   exit 1
 }
 
@@ -320,7 +321,7 @@ install_asdf() {
   _need_interaction="$1"
   _answer=""
   if "$_need_interaction"; then
-    info "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${BOLD}${ASDF_INSTALL_DOCS}${RESET}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
+    info "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${ASDF_INSTALL_DOCS}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
     if [ ! -t 0 ]; then
       # Starkup is going to want to ask for confirmation by
       # reading stdin. This script may be piped into `sh` though
@@ -371,14 +372,14 @@ install_asdf() {
     fi
     info "asdf-vm has been installed."
   else
-    err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${BOLD}${ASDF_INSTALL_DOCS}${RESET}."
+    err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
 }
 
 update_asdf() {
   _current_version=$(get_asdf_version)
   if is_asdf_legacy; then
-    warn "asdf-vm $_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${BOLD}${ASDF_MIGRATION_DOCS}${RESET}."
+    warn "asdf-vm $_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
     return
   fi
 
@@ -389,7 +390,7 @@ update_asdf() {
   fi
 
   if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
-    warn "asdf-vm $_current_version was not installed by starkup and cannot be updated. Please update manually. See details: ${BOLD}${ASDF_INSTALL_DOCS}${RESET}."
+    warn "asdf-vm $_current_version was not installed by starkup and cannot be updated. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
