@@ -21,7 +21,7 @@ YELLOW=""
 RESET=""
 
 # Check whether colors are supported and should be enabled
-if [ -z "${NO_COLOR:-}" ]; then
+if [ -z "${NO_COLOR:-}" ] && { [ -n "${TERM:-}" ] && echo "$TERM" | grep -q "^xterm"; }; then
   BOLD="\033[1m"
   RED="\033[31m"
   YELLOW="\033[33m"
