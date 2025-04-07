@@ -4,9 +4,10 @@ set -eu
 
 SCRIPT_VERSION="0.2.3"
 
+SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
 
-ASDF_DEFAULT_VERSION="0.16.5"
+ASDF_DEFAULT_VERSION="0.16.7"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
@@ -14,6 +15,19 @@ ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
+
+BOLD=""
+RED=""
+YELLOW=""
+RESET=""
+
+# Check whether colors are supported and should be enabled
+if [ -z "${NO_COLOR:-}" ] && echo "${TERM:-}" | grep -q "^xterm"; then
+  BOLD="\033[1m"
+  RED="\033[31m"
+  YELLOW="\033[33m"
+  RESET="\033[0m"
+fi
 
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
 # TODO(#2): Link snfoundry uninstall docs once they are available
@@ -90,7 +104,7 @@ main() {
     err "unexpected argument: $1. For more information, try '--help'."
   fi
 
-  say "Installing $version_set version set..."
+  info "Installing $version_set version set..."
 
   assert_dependencies "$need_interaction"
 
@@ -120,9 +134,10 @@ main() {
   done
 
   if [ "$version_set" = "latest" ]; then
-    say "Warning: Installed version set 'latest' might contain incompatible versions. If you encounter issues, consider using '--version-set compatible' instead. For more information, refer to ${REPO_URL}."
+    warn "Installed version set 'latest' might contain incompatible versions. If you encounter issues, consider using '--version-set compatible' instead. For more information, refer to ${REPO_URL}."
   fi
 
+  shell_config=""
   completion_message=""
 
   case ${SHELL:-""} in
@@ -143,12 +158,32 @@ main() {
     completion_message="Run '. ${shell_config}'"
     ;;
   *)
-    say "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
+    warn "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
     completion_message="Source your shell configuration file"
     ;;
   esac
 
-  say "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
+  add_alias "${shell_config}"
+
+  info "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
+}
+
+add_alias() {
+  _shell_config="$1"
+  _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+
+  if [ -z "$_shell_config" ]; then
+    warn "Could not detect shell. To simplify access to the installer, add the following to your shell configuration file:\nalias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+    return
+  fi
+
+  if ! grep -q "^alias starkup" "${_shell_config}"; then
+    cat <<EOF >>"${_shell_config}"
+# Alias for running starkup installer
+$_alias_def
+EOF
+    info "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
+  fi
 }
 
 assert_dependencies() {
@@ -234,7 +269,7 @@ install_version() {
   _tool="$1"
   _installed_version="$2"
   if check_version_installed "$_tool" "$_installed_version"; then
-    say "$_tool $_installed_version is already installed"
+    info "$_tool $_installed_version is already installed"
   else
     ensure asdf install "$_tool" "$_installed_version"
   fi
@@ -306,7 +341,7 @@ get_latest_gh_version_or_default() {
 
   # shellcheck disable=SC2015
   _latest_gh_version=$(get_latest_gh_version "$_repo") && [ -n "$_latest_gh_version" ] || {
-    say "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version." >&2
+    warn "Failed to fetch latest version for $_repo (possibly due to GitHub server rate limit or error). Using default version $_default_version." >&2
     _latest_gh_version="$_default_version"
   }
 
@@ -330,8 +365,16 @@ say() {
   printf 'starkup: %b\n' "$1"
 }
 
+info() {
+  say "${BOLD}info:${RESET} $1"
+}
+
+warn() {
+  say "${BOLD}${YELLOW}warn:${RESET} ${YELLOW}$1${RESET}"
+}
+
 err() {
-  say "$1" >&2
+  say "${BOLD}${RED}error:${RESET} ${RED}$1${RESET}" >&2
   exit 1
 }
 
@@ -351,7 +394,7 @@ ensure() {
 
 install_vscode_plugin() {
   if check_cmd code; then
-    code --install-extension StarkWare.cairo1
+    code --install-extension StarkWare.cairo1 --force
   fi
 }
 
@@ -369,7 +412,7 @@ install_asdf() {
   _need_interaction="$1"
   _answer=""
   if "$_need_interaction"; then
-    say "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${ASDF_INSTALL_DOCS}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
+    info "asdf-vm is required but not found.\nFor seamless updates, install it using a package manager (e.g., Homebrew, AUR helpers). See details: ${ASDF_INSTALL_DOCS}.\nAlternatively, the script can install asdf-vm directly, but manual updates might be needed later.\nProceed with direct installation? (y/N):"
     if [ ! -t 0 ]; then
       # Starkup is going to want to ask for confirmation by
       # reading stdin. This script may be piped into `sh` though
@@ -418,7 +461,7 @@ install_asdf() {
       echo >>"$_profile" && echo "export PATH=\"${LOCAL_BIN_ESCAPED}:\$PATH\"" >>"$_profile"
       echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
     fi
-    say "asdf-vm has been installed."
+    info "asdf-vm has been installed."
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
@@ -427,29 +470,29 @@ install_asdf() {
 update_asdf() {
   _asdf_current_version=$(get_asdf_version)
   if is_asdf_legacy; then
-    say "asdf-vm $_asdf_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
+    warn "asdf-vm $_asdf_current_version is legacy and cannot be updated. Please update manually. For migration instructions, refer to ${ASDF_MIGRATION_DOCS}."
     return
   fi
 
   _asdf_latest_version=$(get_latest_gh_version_or_default "asdf-vm/asdf" "$ASDF_DEFAULT_VERSION")
   if ! version_less_than "$_asdf_current_version" "$_asdf_latest_version"; then
-    say "asdf-vm is up to date."
+    info "asdf-vm is up to date."
     return
   fi
 
   if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
-    say "asdf-vm $_asdf_current_version is was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
+    warn "asdf-vm $_asdf_current_version was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
   download_asdf "$_asdf_latest_version"
-  say "asdf-vm updated to $_asdf_latest_version."
+  info "asdf-vm updated to $_asdf_latest_version."
 }
 
 download_asdf() {
   _asdf_version="$1"
 
-  say "Downloading asdf-vm $_asdf_version..."
+  info "Downloading asdf-vm $_asdf_version..."
 
   _os="$(uname -s)"
   _arch="$(uname -m)"
