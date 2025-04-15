@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.2.4"
+SCRIPT_VERSION="0.2.5"
 
 SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
