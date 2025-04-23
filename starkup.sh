@@ -39,7 +39,6 @@ FOUNDRY_LATEST_COMPATIBLE_VERSION="0.41.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.8.1"
 
-DID_INSTALL=false
 SHELL_CONFIG_CHANGED=false
 
 usage() {
@@ -141,12 +140,12 @@ main() {
   fi
 
   shell_config=""
-  completion_message=""
+  shell_source_hint=""
 
   case ${SHELL:-""} in
   */zsh)
     shell_config="$HOME/.zshrc"
-    completion_message="Run 'source ${shell_config}'"
+    shell_source_hint="Run 'source ${shell_config}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -154,35 +153,30 @@ main() {
     else
       shell_config="$HOME/.bashrc"
     fi
-    completion_message="Run 'source ${shell_config}'"
+    shell_source_hint="Run 'source ${shell_config}'"
     ;;
   */sh)
     shell_config="$HOME/.profile"
-    completion_message="Run '. ${shell_config}'"
+    shell_source_hint="Run '. ${shell_config}'"
     ;;
   *)
     warn "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
-    completion_message="Source your shell configuration file"
+    shell_source_hint="Source your shell configuration file"
     ;;
   esac
 
   add_alias "${shell_config}"
 
-  print_summary
+  print_completion_message "$shell_source_hint"
 }
 
-print_summary() {
-  if "$DID_INSTALL"; then
-    _msg="Installation complete."
-  else
-    _msg="Update complete."
+print_completion_message() {
+  _shell_source_hint="$1"
+  msg="Installation complete."
+  if $SHELL_CONFIG_CHANGED; then
+    msg="$msg ${_shell_source_hint} or start a new terminal session to use the updated tools."
   fi
-
-  if "$SHELL_CONFIG_CHANGED"; then
-    _msg="$_msg ${completion_message} or start a new terminal session to use the updated tools."
-  fi
-
-  info "$_msg"
+  info "$msg"
 }
 
 add_alias() {
@@ -290,7 +284,6 @@ install_version() {
     info "$_tool $_installed_version is already installed"
   else
     ensure asdf install "$_tool" "$_installed_version"
-    DID_INSTALL=true
   fi
 }
 
@@ -377,7 +370,6 @@ install_universal_sierra_compiler() {
 
   if [ -z "$_usc_version" ] || [ "$_usc_version" != "$_usc_latest_version" ]; then
     curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | ${SHELL:-sh}
-    DID_INSTALL=1
   fi
 }
 
@@ -482,8 +474,7 @@ install_asdf() {
       echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
     fi
     info "asdf-vm has been installed."
-    DID_INSTALL=1
-    SHELL_CONFIG_CHANGED=1
+    SHELL_CONFIG_CHANGED=true
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
