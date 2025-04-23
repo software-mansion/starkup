@@ -39,6 +39,9 @@ FOUNDRY_LATEST_COMPATIBLE_VERSION="0.41.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.8.1"
 
+DID_INSTALL=false
+SHELL_CONFIG_CHANGED=false
+
 usage() {
   cat <<EOF
 The installer for Starknet tools. Installs the latest versions of Scarb, Starknet Foundry and Universal Sierra Compiler using asdf.
@@ -165,7 +168,21 @@ main() {
 
   add_alias "${shell_config}"
 
-  info "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
+  print_summary
+}
+
+print_summary() {
+  if "$DID_INSTALL"; then
+    _msg="Installation complete."
+  else
+    _msg="Update complete."
+  fi
+
+  if "$SHELL_CONFIG_CHANGED"; then
+    _msg="$_msg ${completion_message} or start a new terminal session to use the updated tools."
+  fi
+
+  info "$_msg"
 }
 
 add_alias() {
@@ -183,6 +200,7 @@ add_alias() {
 $_alias_def
 EOF
     info "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
+    SHELL_CONFIG_CHANGED=true
   fi
 }
 
@@ -272,6 +290,7 @@ install_version() {
     info "$_tool $_installed_version is already installed"
   else
     ensure asdf install "$_tool" "$_installed_version"
+    DID_INSTALL=true
   fi
 }
 
@@ -358,6 +377,7 @@ install_universal_sierra_compiler() {
 
   if [ -z "$_usc_version" ] || [ "$_usc_version" != "$_usc_latest_version" ]; then
     curl -sSL --fail https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | ${SHELL:-sh}
+    DID_INSTALL=1
   fi
 }
 
@@ -462,6 +482,8 @@ install_asdf() {
       echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
     fi
     info "asdf-vm has been installed."
+    DID_INSTALL=1
+    SHELL_CONFIG_CHANGED=1
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
@@ -481,7 +503,7 @@ update_asdf() {
   fi
 
   if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
-    warn "asdf-vm $_asdf_current_version was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
+    warn "asdf-vm $_asdf_current_version is out of date and was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
