@@ -116,7 +116,6 @@ main() {
   tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
   assert_not_installed_outside_asdf "$tools_list"
 
-  install_universal_sierra_compiler
   install_vscode_plugin
 
   # todo(scarb#1989): after profiler and coverage have shorthand plugin names,
@@ -137,6 +136,8 @@ main() {
       set_global_version "$tool" "$compatible_version"
     fi
   done
+
+  install_latest_universal_sierra_compiler
 
   if [ "$version_set" = "latest" ]; then
     warn "Installed version set 'latest' might contain incompatible versions. If you encounter issues, consider using '--version-set compatible' instead. For more information, refer to ${REPO_URL}."
@@ -379,9 +380,13 @@ get_latest_gh_version_or_default() {
   echo "$_latest_gh_version"
 }
 
-install_universal_sierra_compiler() {
+install_latest_universal_sierra_compiler() {
   _usc_version=""
   _usc_latest_version=""
+
+  if ! check_cmd universal-sierra-compiler; then
+    export PATH="${LOCAL_BIN}:$PATH"
+  fi
   if check_cmd universal-sierra-compiler; then
     _usc_version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
     _usc_latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
