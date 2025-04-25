@@ -16,6 +16,8 @@ ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
 
+ORIGINAL_PATH="$PATH"
+
 BOLD=""
 RED=""
 YELLOW=""
@@ -40,6 +42,7 @@ COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.8.1"
 
 SHELL_CONFIG_CHANGED=false
+WARNED_MISSING_PATH_ENTRIES=false
 
 usage() {
   cat <<EOF
@@ -160,7 +163,7 @@ main() {
     shell_source_hint="Run '. ${shell_config}'"
     ;;
   *)
-    warn "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
+    warn_missing_path_entries
     shell_source_hint="Source your shell configuration file"
     ;;
   esac
@@ -173,11 +176,28 @@ main() {
 print_completion_message() {
   _shell_source_hint="$1"
   msg="Installation complete."
-  if $SHELL_CONFIG_CHANGED; then
-    msg="$msg ${_shell_source_hint} or start a new terminal session to use the updated tools."
+  if "$WARNED_MISSING_PATH_ENTRIES"; then
+    msg="$msg Please manually add the missing entries to your PATH, then source your shell configuration file or start a new terminal session to use the installed tools."
+  elif $SHELL_CONFIG_CHANGED; then
+    msg="$msg ${_shell_source_hint} or start a new terminal session to use the installed tools."
   fi
   info "$msg"
 }
+
+warn_missing_path_entries() {
+  missing_entries=""
+  if ! echo ":${ORIGINAL_PATH}:" | grep -q ":${LOCAL_BIN}:"; then
+    missing_entries="${LOCAL_BIN_ESCAPED}"
+  fi
+  if is_asdf_installed_by_starkup && ! echo ":${ORIGINAL_PATH}:" | grep -q ":${ASDF_SHIMS}:"; then
+    missing_entries="${missing_entries:+${missing_entries} and }${ASDF_SHIMS_ESCAPED}"
+  fi
+  if [ -n "$missing_entries" ]; then
+    warn "Could not detect shell. Please manually add ${missing_entries} to your PATH."
+    WARNED_MISSING_PATH_ENTRIES=true
+  fi
+}
+
 
 add_alias() {
   _shell_config="$1"
@@ -493,13 +513,20 @@ update_asdf() {
     return
   fi
 
-  if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
+  if ! is_asdf_installed_by_starkup; then
     warn "asdf-vm $_asdf_current_version is out of date and was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
   download_asdf "$_asdf_latest_version"
   info "asdf-vm updated to $_asdf_latest_version."
+}
+
+is_asdf_installed_by_starkup() {
+  if ! check_cmd asdf; then
+    export PATH="${LOCAL_BIN}:$PATH"
+  fi
+  [ "$(command -v asdf)" = "${LOCAL_BIN}/asdf" ]
 }
 
 download_asdf() {
