@@ -384,10 +384,7 @@ install_latest_universal_sierra_compiler() {
   _usc_version=""
   _usc_latest_version=""
 
-  if ! check_cmd universal-sierra-compiler; then
-    export PATH="${LOCAL_BIN}:$PATH"
-  fi
-  if check_cmd universal-sierra-compiler; then
+  if check_cmd "${LOCAL_BIN}/universal-sierra-compiler"; then
     _usc_version=$(universal-sierra-compiler --version 2>/dev/null | awk '{print $2}')
     _usc_latest_version=$(get_latest_gh_version "software-mansion/universal-sierra-compiler")
   fi
