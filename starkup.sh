@@ -522,7 +522,7 @@ update_asdf() {
 }
 
 is_asdf_installed_by_starkup() {
-  [ "$(command -v asdf 2>/dev/null)" = "${LOCAL_BIN}/asdf" ] || check_cmd "${LOCAL_BIN}/asdf";
+  [ "$(command -v asdf 2>/dev/null)" = "${LOCAL_BIN}/asdf" ] || check_cmd "${LOCAL_BIN}/asdf"
 }
 
 download_asdf() {
