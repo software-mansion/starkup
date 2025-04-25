@@ -198,7 +198,6 @@ warn_missing_path_entries() {
   fi
 }
 
-
 add_alias() {
   _shell_config="$1"
   _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
