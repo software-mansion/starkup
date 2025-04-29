@@ -16,6 +16,8 @@ ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
 
+ORIGINAL_PATH="$PATH"
+
 BOLD=""
 RED=""
 YELLOW=""
@@ -38,6 +40,9 @@ SCARB_LATEST_COMPATIBLE_VERSION="2.11.4"
 FOUNDRY_LATEST_COMPATIBLE_VERSION="0.41.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.8.1"
+
+SHELL_CONFIG_CHANGED=false
+WARNED_MISSING_PATH_ENTRIES=false
 
 usage() {
   cat <<EOF
@@ -138,12 +143,12 @@ main() {
   fi
 
   shell_config=""
-  completion_message=""
+  shell_source_hint=""
 
   case ${SHELL:-""} in
   */zsh)
     shell_config="$HOME/.zshrc"
-    completion_message="Run 'source ${shell_config}'"
+    shell_source_hint="Run 'source ${shell_config}'"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -151,21 +156,46 @@ main() {
     else
       shell_config="$HOME/.bashrc"
     fi
-    completion_message="Run 'source ${shell_config}'"
+    shell_source_hint="Run 'source ${shell_config}'"
     ;;
   */sh)
     shell_config="$HOME/.profile"
-    completion_message="Run '. ${shell_config}'"
+    shell_source_hint="Run '. ${shell_config}'"
     ;;
   *)
-    warn "Could not detect shell. Make sure ${LOCAL_BIN_ESCAPED} and ${ASDF_SHIMS_ESCAPED} are added to your PATH."
-    completion_message="Source your shell configuration file"
+    warn_missing_path_entries
+    shell_source_hint="Source your shell configuration file"
     ;;
   esac
 
   add_alias "${shell_config}"
 
-  info "Installation complete. ${completion_message} or start a new terminal session to use the installed tools."
+  print_completion_message "$shell_source_hint"
+}
+
+print_completion_message() {
+  _shell_source_hint="$1"
+  msg="Installation complete."
+  if "$WARNED_MISSING_PATH_ENTRIES"; then
+    msg="$msg Please manually add the missing entries to your PATH, then source your shell configuration file or start a new terminal session to use the installed tools."
+  elif $SHELL_CONFIG_CHANGED; then
+    msg="$msg ${_shell_source_hint} or start a new terminal session to use the installed tools."
+  fi
+  info "$msg"
+}
+
+warn_missing_path_entries() {
+  missing_entries=""
+  if ! echo ":${ORIGINAL_PATH}:" | grep -q ":${LOCAL_BIN}:"; then
+    missing_entries="${LOCAL_BIN_ESCAPED}"
+  fi
+  if is_asdf_installed_by_starkup && ! echo ":${ORIGINAL_PATH}:" | grep -q ":${ASDF_SHIMS}:"; then
+    missing_entries="${missing_entries:+${missing_entries} and }${ASDF_SHIMS_ESCAPED}"
+  fi
+  if [ -n "$missing_entries" ]; then
+    warn "Could not detect shell. Please manually add ${missing_entries} to your PATH."
+    WARNED_MISSING_PATH_ENTRIES=true
+  fi
 }
 
 add_alias() {
@@ -183,6 +213,7 @@ add_alias() {
 $_alias_def
 EOF
     info "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
+    SHELL_CONFIG_CHANGED=true
   fi
 }
 
@@ -462,6 +493,7 @@ install_asdf() {
       echo >>"$_profile" && echo "export PATH=\"${ASDF_SHIMS_ESCAPED}:\$PATH\"" >>"$_profile"
     fi
     info "asdf-vm has been installed."
+    SHELL_CONFIG_CHANGED=true
   else
     err "cancelled asdf-vm installation. Please install it manually and re-run this script. For installation instructions, refer to ${ASDF_INSTALL_DOCS}."
   fi
@@ -480,13 +512,17 @@ update_asdf() {
     return
   fi
 
-  if [ "$(command -v asdf)" != "${LOCAL_BIN}/asdf" ]; then
-    warn "asdf-vm $_asdf_current_version was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
+  if ! is_asdf_installed_by_starkup; then
+    warn "asdf-vm $_asdf_current_version is out of date and was not installed by starkup. Please update manually. See details: ${ASDF_INSTALL_DOCS}."
     return
   fi
 
   download_asdf "$_asdf_latest_version"
   info "asdf-vm updated to $_asdf_latest_version."
+}
+
+is_asdf_installed_by_starkup() {
+  [ "$(command -v asdf 2>/dev/null)" = "${LOCAL_BIN}/asdf" ] || check_cmd "${LOCAL_BIN}/asdf"
 }
 
 download_asdf() {
