@@ -197,4 +197,6 @@ jobs:
 
       - name: Check asdf latest
         shell: bash
-        run: asdf --version | grep -x "asdf version ${{ steps.asdf_version.outputs.LATEST }} (.*)"
+        run: |
+          asdf --version
+          asdf --version | grep -x "asdf version ${{ steps.asdf_version.outputs.LATEST }} (.*)"
