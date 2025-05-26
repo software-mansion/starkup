@@ -187,9 +187,7 @@ jobs:
 
       - name: Check asdf out-of-date
         shell: bash
-        run: |
-          asdf --version
-          asdf --version | grep -x "asdf version v$ASDF_VERSION"
+        run: asdf --version | grep -x "asdf version v$ASDF_VERSION"
 
       - name: Run starkup
         shell: bash
@@ -199,6 +197,4 @@ jobs:
 
       - name: Check asdf latest
         shell: bash
-        run: |
-          asdf --version
-          asdf --version | grep -x "asdf version ${{ steps.asdf_version.outputs.LATEST }}"
+        run: asdf --version | grep -x "asdf version ${{ steps.asdf_version.outputs.LATEST }} (.*)"
