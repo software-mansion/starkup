@@ -432,7 +432,7 @@ install_vscode_plugin() {
 }
 
 get_asdf_version() {
-  asdf --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+(-[^[:space:]]+)?$'
+  asdf --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+(-[^[:space:]]+)?'
 }
 
 # asdf versions < 0.16.0 are legacy
