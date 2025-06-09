@@ -122,8 +122,8 @@ main() {
   # move plugin installation into the for loop below
   install_latest_asdf_plugin "scarb"
   install_latest_asdf_plugin "starknet-foundry"
-  install_latest_asdf_plugin "cairo-coverage" "https://github.com/software-mansion/asdf-cairo-coverage.git"
-  install_latest_asdf_plugin "cairo-profiler" "https://github.com/software-mansion/asdf-cairo-profiler.git"
+  install_latest_asdf_plugin "cairo-coverage"
+  install_latest_asdf_plugin "cairo-profiler"
 
   for tool in $tools_list; do
     if [ "$version_set" = "latest" ]; then
