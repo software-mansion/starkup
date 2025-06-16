@@ -12,6 +12,7 @@ ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
+SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions-optional"
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
@@ -145,11 +146,13 @@ main() {
 
   shell_config=""
   shell_source_hint=""
+  pref_shell=""
 
   case ${SHELL:-""} in
   */zsh)
     shell_config="$HOME/.zshrc"
     shell_source_hint="Run 'source ${shell_config}'"
+    pref_shell="zsh"
     ;;
   */bash)
     if [ "$(uname)" = "Darwin" ]; then
@@ -158,10 +161,12 @@ main() {
       shell_config="$HOME/.bashrc"
     fi
     shell_source_hint="Run 'source ${shell_config}'"
+    pref_shell="bash"
     ;;
   */sh)
     shell_config="$HOME/.profile"
     shell_source_hint="Run '. ${shell_config}'"
+    pref_shell="sh"
     ;;
   *)
     warn_missing_path_entries
@@ -170,6 +175,8 @@ main() {
   esac
 
   add_alias "${shell_config}"
+
+  add_scarb_completions "${shell_config}" "${pref_shell}"
 
   print_completion_message "$shell_source_hint"
 }
@@ -216,6 +223,79 @@ EOF
     info "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
     SHELL_CONFIG_CHANGED=true
   fi
+}
+
+add_scarb_completions() {
+  _profile="$1"
+  _pref_shell="$2"
+
+  _block_begin_marker='# BEGIN SCARB COMPLETIONS'
+  _block_end_marker='# END SCARB COMPLETIONS'
+
+  case "$_pref_shell" in
+  zsh)
+    _block=$(zsh_completions_block)
+    ;;
+  bash)
+    _block=$(bash_completions_block)
+    ;;
+  *)
+    if [ -z "$_pref_shell" ]; then
+      warn "Could not detect shell, will not install shell completions for Scarb. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
+    else
+      warn "Skipping shell completions installation for Scarb: completions are not supported for $_pref_shell shell."
+    fi
+    ;;
+  esac
+
+  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
+    return
+  fi
+
+  mkdir -p "$(dirname "$_profile")"
+  touch "$_profile"
+
+  # Remove existing completion block if present
+  if grep -F "$_block_begin_marker" "$_profile" >/dev/null 2>&1; then
+    _tmp=$(mktemp) || return 1
+    sed "/$_block_begin_marker/,/$_block_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+  fi
+
+  {
+    printf "\n%s\n" "$_block_begin_marker"
+    printf "%s\n" "$_block"
+    printf "\n%s\n" "$_block_end_marker"
+  } >>"$_profile"
+
+  info "Added Scarb shell completions."
+  SHELL_CONFIG_CHANGED=true
+}
+
+zsh_completions_block() {
+  cat <<'EOF'
+_scarb() {
+  if ! scarb completions zsh >/dev/null 2>&1; then
+    return 0
+  fi
+  eval "$(scarb completions zsh)"
+  _scarb "$@"
+}
+compdef _scarb scarb
+autoload -Uz compinit && compinit
+EOF
+}
+
+bash_completions_block() {
+  cat <<'EOF'
+_scarb() {
+  if ! scarb completions bash >/dev/null 2>&1; then
+    return 0
+  fi
+  source <(scarb completions bash)
+  _scarb "$@"
+}
+complete -o default -F _scarb scarb
+EOF
 }
 
 assert_dependencies() {
