@@ -243,7 +243,7 @@ add_scarb_completions() {
     if [ -z "$_pref_shell" ]; then
       warn "Could not detect shell, will not install shell completions for Scarb. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
     else
-      warn "Skipping shell completions installation for Scarb: completions are not supported for $_pref_shell shell."
+      warn "Installation of Scarb shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
     fi
     ;;
   esac
