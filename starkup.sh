@@ -12,7 +12,7 @@ ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
-SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions-optional"
+SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions"
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
