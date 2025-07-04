@@ -41,6 +41,7 @@ SCARB_LATEST_COMPATIBLE_VERSION="2.11.4"
 FOUNDRY_LATEST_COMPATIBLE_VERSION="0.45.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.9.0"
+DEVNET_LATEST_COMPATIBLE_VERSION="0.4.3"
 
 SHELL_CONFIG_CHANGED=false
 WARNED_MISSING_PATH_ENTRIES=false
@@ -114,19 +115,13 @@ main() {
 
   assert_dependencies "$need_interaction"
 
-  tools_list='scarb starknet-foundry cairo-coverage cairo-profiler'
+  tools_list='scarb starknet-foundry cairo-coverage cairo-profiler starknet-devnet'
   assert_not_installed_outside_asdf "$tools_list"
 
   install_vscode_plugin
 
-  # todo(scarb#1989): after profiler and coverage have shorthand plugin names,
-  # move plugin installation into the for loop below
-  install_latest_asdf_plugin "scarb"
-  install_latest_asdf_plugin "starknet-foundry"
-  install_latest_asdf_plugin "cairo-coverage"
-  install_latest_asdf_plugin "cairo-profiler"
-
   for tool in $tools_list; do
+    install_latest_asdf_plugin "$tool"
     if [ "$version_set" = "latest" ]; then
       latest_version=$(get_latest_version "$tool")
       install_version "$tool" "$latest_version"
@@ -334,6 +329,10 @@ assert_not_installed_outside_asdf() {
       _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/cairo-profiler/g")
       _tool_cmds="cairo-profiler"
       ;;
+    "starknet-devnet")
+      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/starknet-devnet/g")
+      _tool_cmds="starknet-devnet"
+      ;;
     esac
 
     if ! check_asdf_plugin_installed "$_tool"; then
@@ -412,6 +411,9 @@ get_compatible_version() {
     ;;
   "cairo-profiler")
     echo "$PROFILER_LATEST_COMPATIBLE_VERSION"
+    ;;
+  "starknet-devnet")
+    echo "$DEVNET_LATEST_COMPATIBLE_VERSION"
     ;;
   *)
     err "unknown tool: $_tool"
