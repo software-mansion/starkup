@@ -13,6 +13,7 @@ env:
   FOUNDRY_COMPATIBLE_VERSION: 0.45.0
   COVERAGE_COMPATIBLE_VERSION: 0.5.0
   PROFILER_COMPATIBLE_VERSION: 0.9.0
+  DEVNET_COMPATIBLE_VERSION: 0.4.3
 
 jobs:
   fetch-latest-versions:
@@ -24,6 +25,7 @@ jobs:
       usc_latest: ${{ steps.usc_version.outputs.LATEST }}
       coverage_latest: ${{ steps.coverage_version.outputs.LATEST }}
       profiler_latest: ${{ steps.profiler_version.outputs.LATEST }}
+      devnet_latest: ${{ steps.devnet_version.outputs.LATEST }}
     steps:
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
@@ -60,6 +62,13 @@ jobs:
           echo "Latest Cairo Profiler version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
+      - name: Fetch latest Starknet Devnet version from GitHub releases
+        id: devnet_version
+        run: |
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/0xSpaceShard/starknet-devnet/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Starknet Devnet version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
   test-legacy-asdf:
     name: test ${{ inputs.os }} (legacy asdf)
     needs: fetch-latest-versions
@@ -94,6 +103,9 @@ jobs:
       - name: Check Cairo Profiler compatible
         run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
 
+      - name: Check Starknet Devnet compatible
+        run: starknet-devnet --version | grep -x "starknet-devnet ${{ env.DEVNET_COMPATIBLE_VERSION }}"
+
   test:
     name: test ${{ inputs.os }} (compatible versions)
     needs: fetch-latest-versions
@@ -126,6 +138,9 @@ jobs:
       - name: Check Cairo Profiler compatible
         run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
 
+      - name: Check Starknet Devnet compatible
+        run: starknet-devnet --version | grep -x "starknet-devnet ${{ env.DEVNET_COMPATIBLE_VERSION }}"
+
   test-latest:
     name: test ${{ inputs.os }} (latest versions)
     needs: fetch-latest-versions
@@ -157,6 +172,9 @@ jobs:
 
       - name: Check Cairo Profiler latest
         run: cairo-profiler --version | grep -x "cairo-profiler ${{ needs.fetch-latest-versions.outputs.profiler_latest }}"
+
+      - name: Check Starknet Devnet latest
+        run: starknet-devnet --version | grep -x "starknet-devnet ${{ needs.fetch-latest-versions.outputs.devnet_latest }}"
 
   test-asdf-update:
     name: test ${{ inputs.os }} (update asdf)
