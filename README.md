@@ -14,12 +14,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh
 
 Starkup supports the installation of the following tools:
 
-- [Scarb] the Cairo package manager
-- [Starknet Foundry] the Cairo and Starknet testing framework
-- [Universal Sierra Compiler] compiler for any ever-existing Sierra version
-- [Cairo Profiler] profiler for Cairo programming language & Starknet
-- [Cairo Coverage] utility for coverage reports generation for code written in Cairo programming language
-- [CairoLS] vscode extension
+- [Scarb]: package manager for Cairo
+- [Starknet Foundry]: testing framework for Cairo and Starknet
+- [Starknet Devnet]: local testnet for Starknet
+- [Universal Sierra Compiler]: compiler for any existing or past Sierra version
+- [Cairo Profiler]: profiler for Cairo and Starknet
+- [Cairo Coverage]: coverage report generator for Cairo
+- [CairoLS]: VS code extension for Cairo
 
 ## Installing specific versions
 
@@ -57,3 +58,4 @@ Feel free to chat with us on our channel on [Telegram] or [Starknet's Discord]!
 [ASDF]: https://asdf-vm.com/guide/getting-started.html
 [Telegram]: https://t.me/+G_YxIv-XTFlhNWU0
 [Starknet's Discord]: https://discord.gg/rKzsYaTMvA
+[Starknet Devnet]: https://0xspaceshard.github.io/starknet-devnet
