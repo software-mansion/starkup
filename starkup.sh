@@ -33,7 +33,7 @@ if [ -z "${NO_COLOR:-}" ] && echo "${TERM:-}" | grep -q "^xterm"; then
 fi
 
 SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://docs.swmansion.com/scarb/download#uninstall"
-# TODO(#2): Link snfoundry uninstall docs once they are available
+FOUNDRY_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html#uninstallation"
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
 # Set of latest mutually compatible tool versions
@@ -318,7 +318,7 @@ assert_not_installed_outside_asdf() {
       _tool_cmds="scarb"
       ;;
     "starknet-foundry")
-      _uninst_instructions=$(echo "$GENERAL_UNINSTALL_INSTRUCTIONS" | sed "s/TOOL/snforge and sncast/g")
+      _uninst_instructions="$FOUNDRY_UNINSTALL_INSTRUCTIONS"
       _tool_cmds="snforge sncast"
       ;;
     "cairo-coverage")
