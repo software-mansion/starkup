@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.3.0"
+SCRIPT_VERSION="0.3.1"
 
 SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
@@ -13,6 +13,7 @@ ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions"
+FOUNDRY_COMPLETIONS_DOCS="https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html#set-up-shell-completions-optional"
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
@@ -38,7 +39,7 @@ GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
 # Set of latest mutually compatible tool versions
 SCARB_LATEST_COMPATIBLE_VERSION="2.11.4"
-FOUNDRY_LATEST_COMPATIBLE_VERSION="0.45.0"
+FOUNDRY_LATEST_COMPATIBLE_VERSION="0.47.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.9.0"
 DEVNET_LATEST_COMPATIBLE_VERSION="0.4.3"
@@ -173,6 +174,8 @@ main() {
 
   add_scarb_completions "${shell_config}" "${pref_shell}"
 
+  add_foundry_completions "${shell_config}" "${pref_shell}"
+
   print_completion_message "$shell_source_hint"
 }
 
@@ -290,6 +293,98 @@ _scarb() {
   _scarb "$@"
 }
 complete -o default -F _scarb scarb
+EOF
+}
+
+add_foundry_completions() {
+  _profile="$1"
+  _pref_shell="$2"
+
+  _block_begin_marker='# BEGIN FOUNDRY COMPLETIONS'
+  _block_end_marker='# END FOUNDRY COMPLETIONS'
+
+  case "$_pref_shell" in
+  zsh)
+    _block=$(zsh_foundry_completions_block)
+    ;;
+  bash)
+    _block=$(bash_foundry_completions_block)
+    ;;
+  *)
+    if [ -z "$_pref_shell" ]; then
+      warn "Could not detect shell, will not install shell completions for Starknet Foundry. To install completions manually, see: ${FOUNDRY_COMPLETIONS_DOCS}."
+    else
+      warn "Installation of Starknet Foundry shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${FOUNDRY_COMPLETIONS_DOCS}."
+    fi
+    ;;
+  esac
+
+  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
+    return
+  fi
+
+  mkdir -p "$(dirname "$_profile")"
+  touch "$_profile"
+
+  # Remove existing completion block if present
+  if grep -F "$_block_begin_marker" "$_profile" >/dev/null 2>&1; then
+    _tmp=$(mktemp) || return 1
+    sed "/$_block_begin_marker/,/$_block_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+  fi
+
+  {
+    printf "\n%s\n" "$_block_begin_marker"
+    printf "%s\n" "$_block"
+    printf "\n%s\n" "$_block_end_marker"
+  } >>"$_profile"
+
+  info "Added Starknet Foundry shell completions."
+  SHELL_CONFIG_CHANGED=true
+}
+
+zsh_foundry_completions_block() {
+  cat <<'EOF'
+_snforge() {
+  if ! snforge completions zsh >/dev/null 2>&1; then
+    return 0
+  fi
+  eval "$(snforge completions zsh)"
+  _snforge "$@"
+}
+
+_sncast() {
+  if ! sncast completions zsh >/dev/null 2>&1; then
+    return 0
+  fi
+  eval "$(sncast completions zsh)"
+  _sncast "$@"
+}
+
+compdef _snforge snforge
+compdef _sncast sncast
+EOF
+}
+
+bash_foundry_completions_block() {
+  cat <<'EOF'
+_snforge() {
+  if ! snforge completions bash >/dev/null 2>&1; then
+    return 0
+  fi
+  source <(snforge completions bash)
+  _snforge "$@"
+}
+
+_sncast() {
+  if ! sncast completions bash >/dev/null 2>&1; then
+    return 0
+  fi
+  source <(sncast completions bash)
+  _sncast "$@"
+}
+
+complete -o default -F _snforge snforge
+complete -o default -F _sncast sncast
 EOF
 }
 
