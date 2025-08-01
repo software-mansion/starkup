@@ -9,13 +9,42 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ github.token }}
-  SCARB_COMPATIBLE_VERSION: 2.11.4
-  FOUNDRY_COMPATIBLE_VERSION: 0.45.0
-  COVERAGE_COMPATIBLE_VERSION: 0.5.0
-  PROFILER_COMPATIBLE_VERSION: 0.9.0
-  DEVNET_COMPATIBLE_VERSION: 0.4.3
 
 jobs:
+  extract-compatible-versions:
+    name: Extract compatible versions from script
+    runs-on: ubuntu-latest
+    outputs:
+      scarb: ${{ steps.extract.outputs.SCARB_COMPATIBLE_VERSION }}
+      foundry: ${{ steps.extract.outputs.FOUNDRY_COMPATIBLE_VERSION }}
+      coverage: ${{ steps.extract.outputs.COVERAGE_COMPATIBLE_VERSION }}
+      profiler: ${{ steps.extract.outputs.PROFILER_COMPATIBLE_VERSION }}
+      devnet: ${{ steps.extract.outputs.DEVNET_COMPATIBLE_VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Extract compatible versions from starkup.sh
+        id: extract
+        run: |
+          SCARB_VERSION=$(grep "SCARB_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          FOUNDRY_VERSION=$(grep "FOUNDRY_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          COVERAGE_VERSION=$(grep "COVERAGE_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          PROFILER_VERSION=$(grep "PROFILER_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          DEVNET_VERSION=$(grep "DEVNET_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          
+          echo "Extracted versions from starkup.sh:"
+          echo "Scarb: $SCARB_VERSION"
+          echo "Foundry: $FOUNDRY_VERSION"
+          echo "Coverage: $COVERAGE_VERSION"
+          echo "Profiler: $PROFILER_VERSION"
+          echo "Devnet: $DEVNET_VERSION"
+          
+          echo "SCARB_COMPATIBLE_VERSION=$SCARB_VERSION" >> $GITHUB_OUTPUT
+          echo "FOUNDRY_COMPATIBLE_VERSION=$FOUNDRY_VERSION" >> $GITHUB_OUTPUT
+          echo "COVERAGE_COMPATIBLE_VERSION=$COVERAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "PROFILER_COMPATIBLE_VERSION=$PROFILER_VERSION" >> $GITHUB_OUTPUT
+          echo "DEVNET_COMPATIBLE_VERSION=$DEVNET_VERSION" >> $GITHUB_OUTPUT
+  
   fetch-latest-versions:
     name: Fetch latest versions
     runs-on: ubuntu-latest
@@ -71,7 +100,7 @@ jobs:
 
   test-legacy-asdf:
     name: test ${{ inputs.os }} (legacy asdf)
-    needs: fetch-latest-versions
+    needs: [extract-compatible-versions, fetch-latest-versions]
     env:
       ASDF_VERSION: v0.15.0
     runs-on: ${{ inputs.os }}
@@ -87,28 +116,28 @@ jobs:
         run: ./starkup.sh
 
       - name: Check Scarb compatible
-        run: scarb --version | grep -x "scarb ${{ env.SCARB_COMPATIBLE_VERSION }} (.*)"
+        run: scarb --version | grep -x "scarb ${{ needs.extract-compatible-versions.outputs.scarb }} (.*)"
 
       - name: Check Starknet Foundry compatible
         run: |
-          snforge --version | grep -x "snforge ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
-          sncast --version | grep -x "sncast ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
+          snforge --version | grep -x "snforge ${{ needs.extract-compatible-versions.outputs.foundry }}"
+          sncast --version | grep -x "sncast ${{ needs.extract-compatible-versions.outputs.foundry }}"
 
       - name: Check Universal Sierra Compiler latest
         run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ needs.fetch-latest-versions.outputs.usc_latest }}"
 
       - name: Check Cairo Coverage compatible
-        run: cairo-coverage --version | grep -x "cairo-coverage ${{ env.COVERAGE_COMPATIBLE_VERSION }}"
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ needs.extract-compatible-versions.outputs.coverage }}"
 
       - name: Check Cairo Profiler compatible
-        run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ needs.extract-compatible-versions.outputs.profiler }}"
 
       - name: Check Starknet Devnet compatible
-        run: starknet-devnet --version | grep -x "starknet-devnet ${{ env.DEVNET_COMPATIBLE_VERSION }}"
+        run: starknet-devnet --version | grep -x "starknet-devnet ${{ needs.extract-compatible-versions.outputs.devnet }}"
 
   test:
     name: test ${{ inputs.os }} (compatible versions)
-    needs: fetch-latest-versions
+    needs: [extract-compatible-versions, fetch-latest-versions]
     runs-on: ${{ inputs.os }}
     steps:
       - uses: actions/checkout@v4
@@ -122,24 +151,24 @@ jobs:
           echo "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" >> $GITHUB_PATH
 
       - name: Check Scarb compatible
-        run: scarb --version | grep -x "scarb ${{ env.SCARB_COMPATIBLE_VERSION }} (.*)"
+        run: scarb --version | grep -x "scarb ${{ needs.extract-compatible-versions.outputs.scarb }} (.*)"
 
       - name: Check Starknet Foundry compatible
         run: |
-          snforge --version | grep -x "snforge ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
-          sncast --version | grep -x "sncast ${{ env.FOUNDRY_COMPATIBLE_VERSION }}"
+          snforge --version | grep -x "snforge ${{ needs.extract-compatible-versions.outputs.foundry }}"
+          sncast --version | grep -x "sncast ${{ needs.extract-compatible-versions.outputs.foundry }}"
 
       - name: Check Universal Sierra Compiler latest
         run: universal-sierra-compiler --version | grep -x "universal-sierra-compiler ${{ needs.fetch-latest-versions.outputs.usc_latest }}"
 
       - name: Check Cairo Coverage compatible
-        run: cairo-coverage --version | grep -x "cairo-coverage ${{ env.COVERAGE_COMPATIBLE_VERSION }}"
+        run: cairo-coverage --version | grep -x "cairo-coverage ${{ needs.extract-compatible-versions.outputs.coverage }}"
 
       - name: Check Cairo Profiler compatible
-        run: cairo-profiler --version | grep -x "cairo-profiler ${{ env.PROFILER_COMPATIBLE_VERSION }}"
+        run: cairo-profiler --version | grep -x "cairo-profiler ${{ needs.extract-compatible-versions.outputs.profiler }}"
 
       - name: Check Starknet Devnet compatible
-        run: starknet-devnet --version | grep -x "starknet-devnet ${{ env.DEVNET_COMPATIBLE_VERSION }}"
+        run: starknet-devnet --version | grep -x "starknet-devnet ${{ needs.extract-compatible-versions.outputs.devnet }}"
 
   test-latest:
     name: test ${{ inputs.os }} (latest versions)
