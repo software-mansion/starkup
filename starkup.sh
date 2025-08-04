@@ -374,7 +374,6 @@ _add_completions_block() {
       tail -n +$((_start_line)) "$_profile" 2>/dev/null || true
     } >"$_tmp2" && mv "$_tmp2" "$_profile"
   else
-    # If no existing block, append to the end
     {
       printf "\n%s\n" "$_begin_marker"
       printf "%s\n" "$_block"
