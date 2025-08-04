@@ -226,50 +226,18 @@ EOF
 add_scarb_completions() {
   _profile="$1"
   _pref_shell="$2"
-
-  _block_begin_marker='# BEGIN SCARB COMPLETIONS'
-  _block_end_marker='# END SCARB COMPLETIONS'
-
-  case "$_pref_shell" in
-  zsh)
-    _block=$(zsh_completions_block)
-    ;;
-  bash)
-    _block=$(bash_completions_block)
-    ;;
-  *)
-    if [ -z "$_pref_shell" ]; then
-      warn "Could not detect shell, will not install shell completions for Scarb. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
-    else
-      warn "Installation of Scarb shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
-    fi
-    ;;
-  esac
-
-  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
-    return
-  fi
-
-  mkdir -p "$(dirname "$_profile")"
-  touch "$_profile"
-
-  # Remove existing completion block if present
-  if grep -F "$_block_begin_marker" "$_profile" >/dev/null 2>&1; then
-    _tmp=$(mktemp) || return 1
-    sed "/$_block_begin_marker/,/$_block_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
-  fi
-
-  {
-    printf "\n%s\n" "$_block_begin_marker"
-    printf "%s\n" "$_block"
-    printf "\n%s\n" "$_block_end_marker"
-  } >>"$_profile"
-
-  info "Added Scarb shell completions."
-  SHELL_CONFIG_CHANGED=true
+  _add_completions_block \
+    "$_profile" \
+    "$_pref_shell" \
+    "Scarb" \
+    zsh_scarb_completions_block \
+    bash_scarb_completions_block \
+    '# BEGIN SCARB COMPLETIONS' \
+    '# END SCARB COMPLETIONS' \
+    "$SCARB_COMPLETIONS_DOCS"
 }
 
-zsh_completions_block() {
+zsh_scarb_completions_block() {
   cat <<'EOF'
 _scarb() {
   if ! scarb completions zsh >/dev/null 2>&1; then
@@ -283,7 +251,7 @@ compdef _scarb scarb
 EOF
 }
 
-bash_completions_block() {
+bash_scarb_completions_block() {
   cat <<'EOF'
 _scarb() {
   if ! scarb completions bash >/dev/null 2>&1; then
@@ -299,47 +267,15 @@ EOF
 add_foundry_completions() {
   _profile="$1"
   _pref_shell="$2"
-
-  _block_begin_marker='# BEGIN FOUNDRY COMPLETIONS'
-  _block_end_marker='# END FOUNDRY COMPLETIONS'
-
-  case "$_pref_shell" in
-  zsh)
-    _block=$(zsh_foundry_completions_block)
-    ;;
-  bash)
-    _block=$(bash_foundry_completions_block)
-    ;;
-  *)
-    if [ -z "$_pref_shell" ]; then
-      warn "Could not detect shell, will not install shell completions for Starknet Foundry. To install completions manually, see: ${FOUNDRY_COMPLETIONS_DOCS}."
-    else
-      warn "Installation of Starknet Foundry shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${FOUNDRY_COMPLETIONS_DOCS}."
-    fi
-    ;;
-  esac
-
-  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
-    return
-  fi
-
-  mkdir -p "$(dirname "$_profile")"
-  touch "$_profile"
-
-  # Remove existing completion block if present
-  if grep -F "$_block_begin_marker" "$_profile" >/dev/null 2>&1; then
-    _tmp=$(mktemp) || return 1
-    sed "/$_block_begin_marker/,/$_block_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
-  fi
-
-  {
-    printf "\n%s\n" "$_block_begin_marker"
-    printf "%s\n" "$_block"
-    printf "\n%s\n" "$_block_end_marker"
-  } >>"$_profile"
-
-  info "Added Starknet Foundry shell completions."
-  SHELL_CONFIG_CHANGED=true
+  _add_completions_block \
+    "$_profile" \
+    "$_pref_shell" \
+    "Starknet Foundry" \
+    zsh_foundry_completions_block \
+    bash_foundry_completions_block \
+    '# BEGIN FOUNDRY COMPLETIONS' \
+    '# END FOUNDRY COMPLETIONS' \
+    "$FOUNDRY_COMPLETIONS_DOCS"
 }
 
 zsh_foundry_completions_block() {
@@ -386,6 +322,56 @@ _sncast() {
 complete -o default -F _snforge snforge
 complete -o default -F _sncast sncast
 EOF
+}
+
+_add_completions_block() {
+  _profile="$1"
+  _pref_shell="$2"
+  _tool="$3"
+  _zsh_completion_block="$4"
+  _bash_completion_block="$5"
+  _begin_marker="$6"
+  _end_marker="$7"
+  _docs_url="$8"
+
+  case "$_pref_shell" in
+  zsh)
+    _block="$($_zsh_completion_block)"
+    ;;
+  bash)
+    _block="$($_bash_completion_block)"
+    ;;
+  *)
+    if [ -z "$_pref_shell" ]; then
+      warn "Could not detect shell, will not install shell completions for $_tool. To install completions manually, see: ${_docs_url}."
+    else
+      warn "Installation of $_tool shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${_docs_url}."
+    fi
+    return
+    ;;
+  esac
+
+  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
+    return
+  fi
+
+  mkdir -p "$(dirname "$_profile")"
+  touch "$_profile"
+
+  # # Remove existing completion block if present
+  if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+    _tmp=$(mktemp) || return 1
+    sed "/$_begin_marker/,/$_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+  fi
+
+  {
+    printf "\n%s\n" "$_begin_marker"
+    printf "%s\n" "$_block"
+    printf "%s\n" "$_end_marker"
+  } >>"$_profile"
+
+  info "Added $_tool shell completions."
+  SHELL_CONFIG_CHANGED=true
 }
 
 assert_dependencies() {
