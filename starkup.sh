@@ -358,17 +358,29 @@ _add_completions_block() {
   mkdir -p "$(dirname "$_profile")"
   touch "$_profile"
 
-  # # Remove existing completion block if present
+  # Remove existing completion block if present and replace it in the same location
   if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+    _start_line=$(grep -n -F "$_begin_marker" "$_profile" | head -1 | cut -d: -f1)
     _tmp=$(mktemp) || return 1
+    # Remove the existing block
     sed "/$_begin_marker/,/$_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+    # Insert new block at the same line number
+    _tmp2=$(mktemp) || return 1
+    {
+      head -n $((_start_line - 1)) "$_profile" 2>/dev/null || true
+      printf "%s\n" "$_begin_marker"
+      printf "%s\n" "$_block"
+      printf "%s\n" "$_end_marker"
+      tail -n +$((_start_line)) "$_profile" 2>/dev/null || true
+    } >"$_tmp2" && mv "$_tmp2" "$_profile"
+  else
+    # If no existing block, append to the end
+    {
+      printf "\n%s\n" "$_begin_marker"
+      printf "%s\n" "$_block"
+      printf "%s\n" "$_end_marker"
+    } >>"$_profile"
   fi
-
-  {
-    printf "\n%s\n" "$_begin_marker"
-    printf "%s\n" "$_block"
-    printf "%s\n" "$_end_marker"
-  } >>"$_profile"
 
   info "Added $_tool shell completions."
   SHELL_CONFIG_CHANGED=true
