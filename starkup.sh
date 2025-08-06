@@ -9,7 +9,7 @@ REPO_URL="https://github.com/software-mansion/starkup"
 
 ASDF_DEFAULT_VERSION="0.18.0"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
-ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
+ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-14.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions"
@@ -230,38 +230,58 @@ add_scarb_completions() {
     "$_profile" \
     "$_pref_shell" \
     "Scarb" \
-    zsh_scarb_completions_block \
-    bash_scarb_completions_block \
+    "generate_zsh_completion \"scarb\" \"\$_should_add_autoload\"" \
+    'generate_bash_completion "scarb"' \
     '# BEGIN SCARB COMPLETIONS' \
     '# END SCARB COMPLETIONS' \
     "$SCARB_COMPLETIONS_DOCS"
 }
 
-zsh_scarb_completions_block() {
-  cat <<'EOF'
-_scarb() {
-  if ! scarb completions zsh >/dev/null 2>&1; then
+generate_zsh_completion() {
+  _commands="$1"
+  _should_add_autoload="${2:-false}"
+
+  for _cmd in $_commands; do
+    cat <<EOF
+_${_cmd}() {
+  if ! ${_cmd} completions zsh >/dev/null 2>&1; then
     return 0
   fi
-  eval "$(scarb completions zsh)"
-  _scarb "$@"
-}
-autoload -Uz compinit && compinit
-compdef _scarb scarb
-EOF
+  eval "\$(${_cmd} completions zsh)"
+  _${_cmd} "\$@"
 }
 
-bash_scarb_completions_block() {
-  cat <<'EOF'
-_scarb() {
-  if ! scarb completions bash >/dev/null 2>&1; then
+EOF
+  done
+
+  if [ "$_should_add_autoload" = "true" ]; then
+    echo "autoload -Uz compinit && compinit"
+  fi
+
+  for _cmd in $_commands; do
+    echo "compdef _${_cmd} ${_cmd}"
+  done
+}
+
+generate_bash_completion() {
+  _commands="$1"
+
+  for _cmd in $_commands; do
+    cat <<EOF
+_${_cmd}() {
+  if ! ${_cmd} completions bash >/dev/null 2>&1; then
     return 0
   fi
-  source <(scarb completions bash)
-  _scarb "$@"
+  source <(${_cmd} completions bash)
+  _${_cmd} "\$@"
 }
-complete -o default -F _scarb scarb
+
 EOF
+  done
+
+  for _cmd in $_commands; do
+    echo "complete -o default -F _${_cmd} ${_cmd}"
+  done
 }
 
 add_foundry_completions() {
@@ -271,57 +291,11 @@ add_foundry_completions() {
     "$_profile" \
     "$_pref_shell" \
     "Starknet Foundry" \
-    zsh_foundry_completions_block \
-    bash_foundry_completions_block \
+    "generate_zsh_completion \"snforge sncast\" \"\$_should_add_autoload\"" \
+    'generate_bash_completion "snforge sncast"' \
     '# BEGIN FOUNDRY COMPLETIONS' \
     '# END FOUNDRY COMPLETIONS' \
     "$FOUNDRY_COMPLETIONS_DOCS"
-}
-
-zsh_foundry_completions_block() {
-  cat <<'EOF'
-_snforge() {
-  if ! snforge completions zsh >/dev/null 2>&1; then
-    return 0
-  fi
-  eval "$(snforge completions zsh)"
-  _snforge "$@"
-}
-
-_sncast() {
-  if ! sncast completions zsh >/dev/null 2>&1; then
-    return 0
-  fi
-  eval "$(sncast completions zsh)"
-  _sncast "$@"
-}
-
-compdef _snforge snforge
-compdef _sncast sncast
-EOF
-}
-
-bash_foundry_completions_block() {
-  cat <<'EOF'
-_snforge() {
-  if ! snforge completions bash >/dev/null 2>&1; then
-    return 0
-  fi
-  source <(snforge completions bash)
-  _snforge "$@"
-}
-
-_sncast() {
-  if ! sncast completions bash >/dev/null 2>&1; then
-    return 0
-  fi
-  source <(sncast completions bash)
-  _sncast "$@"
-}
-
-complete -o default -F _snforge snforge
-complete -o default -F _sncast sncast
-EOF
 }
 
 _add_completions_block() {
@@ -336,10 +310,27 @@ _add_completions_block() {
 
   case "$_pref_shell" in
   zsh)
-    _block="$($_zsh_completion_block)"
+    _should_add_autoload=true
+
+    if [ -f "$_profile" ]; then
+      # If autoload exists anywhere in the file, don't add it
+      if grep -q "autoload -Uz compinit && compinit" "$_profile"; then
+        _should_add_autoload=false
+      fi
+
+      # Exception: if we're replacing an existing block that contains autoload, preserve it
+      if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+        _existing_block=$(sed -n "/$_begin_marker/,/$_end_marker/p" "$_profile")
+        if echo "$_existing_block" | grep -q "autoload -Uz compinit && compinit"; then
+          _should_add_autoload=true
+        fi
+      fi
+    fi
+
+    _block="$(eval "$_zsh_completion_block")"
     ;;
   bash)
-    _block="$($_bash_completion_block)"
+    _block="$(eval "$_bash_completion_block")"
     ;;
   *)
     if [ -z "$_pref_shell" ]; then
