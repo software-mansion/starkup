@@ -230,14 +230,14 @@ add_scarb_completions() {
     "$_profile" \
     "$_pref_shell" \
     "Scarb" \
-    "generate_zsh_completion \"scarb\" \"\$_should_add_autoload\"" \
-    'generate_bash_completion "scarb"' \
+    "generate_zsh_completions \"scarb\" \"\$_should_add_autoload\"" \
+    'generate_bash_completions "scarb"' \
     '# BEGIN SCARB COMPLETIONS' \
     '# END SCARB COMPLETIONS' \
     "$SCARB_COMPLETIONS_DOCS"
 }
 
-generate_zsh_completion() {
+generate_zsh_completions() {
   _commands="$1"
   _should_add_autoload="${2:-false}"
 
@@ -263,7 +263,7 @@ EOF
   done
 }
 
-generate_bash_completion() {
+generate_bash_completions() {
   _commands="$1"
 
   for _cmd in $_commands; do
@@ -291,8 +291,8 @@ add_foundry_completions() {
     "$_profile" \
     "$_pref_shell" \
     "Starknet Foundry" \
-    "generate_zsh_completion \"snforge sncast\" \"\$_should_add_autoload\"" \
-    'generate_bash_completion "snforge sncast"' \
+    "generate_zsh_completions \"snforge sncast\" \"\$_should_add_autoload\"" \
+    'generate_bash_completions "snforge sncast"' \
     '# BEGIN FOUNDRY COMPLETIONS' \
     '# END FOUNDRY COMPLETIONS' \
     "$FOUNDRY_COMPLETIONS_DOCS"
