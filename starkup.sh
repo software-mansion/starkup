@@ -9,7 +9,7 @@ REPO_URL="https://github.com/software-mansion/starkup"
 
 ASDF_DEFAULT_VERSION="0.18.0"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
-ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-14.html"
+ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions"
@@ -308,22 +308,24 @@ _add_completions_block() {
   _end_marker="$7"
   _docs_url="$8"
 
+  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
+    return
+  fi
+
   case "$_pref_shell" in
   zsh)
     _should_add_autoload=true
 
-    if [ -f "$_profile" ]; then
-      # If autoload exists anywhere in the file, don't add it
-      if grep -q "autoload -Uz compinit && compinit" "$_profile"; then
-        _should_add_autoload=false
-      fi
+    # If autoload exists anywhere in the file, don't add it
+    if grep -q "autoload -Uz compinit && compinit" "$_profile" 2>/dev/null; then
+      _should_add_autoload=false
+    fi
 
-      # Exception: if we're replacing an existing block that contains autoload, preserve it
-      if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
-        _existing_block=$(sed -n "/$_begin_marker/,/$_end_marker/p" "$_profile")
-        if echo "$_existing_block" | grep -q "autoload -Uz compinit && compinit"; then
-          _should_add_autoload=true
-        fi
+    # Exception: if we're replacing an existing block that contains autoload, preserve it
+    if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+      _existing_block=$(sed -n "/$_begin_marker/,/$_end_marker/p" "$_profile")
+      if echo "$_existing_block" | grep -q "autoload -Uz compinit && compinit"; then
+        _should_add_autoload=true
       fi
     fi
 
@@ -341,10 +343,6 @@ _add_completions_block() {
     return
     ;;
   esac
-
-  if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
-    return
-  fi
 
   mkdir -p "$(dirname "$_profile")"
   touch "$_profile"
