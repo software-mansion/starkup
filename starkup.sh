@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.3.0"
+SCRIPT_VERSION="0.3.1"
 
 SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
@@ -13,6 +13,7 @@ ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 ASDF_SHIMS_ESCAPED="\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims"
 SCARB_COMPLETIONS_DOCS="https://docs.swmansion.com/scarb/download.html#shell-completions"
+FOUNDRY_COMPLETIONS_DOCS="https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html#set-up-shell-completions-optional"
 
 LOCAL_BIN="${HOME}/.local/bin"
 LOCAL_BIN_ESCAPED="\${HOME}/.local/bin"
@@ -38,7 +39,7 @@ GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
 # Set of latest mutually compatible tool versions
 SCARB_LATEST_COMPATIBLE_VERSION="2.11.4"
-FOUNDRY_LATEST_COMPATIBLE_VERSION="0.45.0"
+FOUNDRY_LATEST_COMPATIBLE_VERSION="0.48.0"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.5.0"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.9.0"
 DEVNET_LATEST_COMPATIBLE_VERSION="0.4.3"
@@ -173,6 +174,8 @@ main() {
 
   add_scarb_completions "${shell_config}" "${pref_shell}"
 
+  add_foundry_completions "${shell_config}" "${pref_shell}"
+
   print_completion_message "$shell_source_hint"
 }
 
@@ -223,74 +226,152 @@ EOF
 add_scarb_completions() {
   _profile="$1"
   _pref_shell="$2"
+  _add_completions_block \
+    "$_profile" \
+    "$_pref_shell" \
+    "Scarb" \
+    "generate_zsh_completions \"scarb\" \"\$_should_add_autoload\"" \
+    'generate_bash_completions "scarb"' \
+    '# BEGIN SCARB COMPLETIONS' \
+    '# END SCARB COMPLETIONS' \
+    "$SCARB_COMPLETIONS_DOCS"
+}
 
-  _block_begin_marker='# BEGIN SCARB COMPLETIONS'
-  _block_end_marker='# END SCARB COMPLETIONS'
+generate_zsh_completions() {
+  _commands="$1"
+  _should_add_autoload="${2:-false}"
 
-  case "$_pref_shell" in
-  zsh)
-    _block=$(zsh_completions_block)
-    ;;
-  bash)
-    _block=$(bash_completions_block)
-    ;;
-  *)
-    if [ -z "$_pref_shell" ]; then
-      warn "Could not detect shell, will not install shell completions for Scarb. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
-    else
-      warn "Installation of Scarb shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${SCARB_COMPLETIONS_DOCS}."
-    fi
-    ;;
-  esac
+  for _cmd in $_commands; do
+    cat <<EOF
+_${_cmd}() {
+  if ! ${_cmd} completions zsh >/dev/null 2>&1; then
+    return 0
+  fi
+  eval "\$(${_cmd} completions zsh)"
+  _${_cmd} "\$@"
+}
+
+EOF
+  done
+
+  if [ "$_should_add_autoload" = "true" ]; then
+    echo "autoload -Uz compinit && compinit"
+  fi
+
+  for _cmd in $_commands; do
+    echo "compdef _${_cmd} ${_cmd}"
+  done
+}
+
+generate_bash_completions() {
+  _commands="$1"
+
+  for _cmd in $_commands; do
+    cat <<EOF
+_${_cmd}() {
+  if ! ${_cmd} completions bash >/dev/null 2>&1; then
+    return 0
+  fi
+  source <(${_cmd} completions bash)
+  _${_cmd} "\$@"
+}
+
+EOF
+  done
+
+  for _cmd in $_commands; do
+    echo "complete -o default -F _${_cmd} ${_cmd}"
+  done
+}
+
+add_foundry_completions() {
+  _profile="$1"
+  _pref_shell="$2"
+  _add_completions_block \
+    "$_profile" \
+    "$_pref_shell" \
+    "Starknet Foundry" \
+    "generate_zsh_completions \"snforge sncast\" \"\$_should_add_autoload\"" \
+    'generate_bash_completions "snforge sncast"' \
+    '# BEGIN FOUNDRY COMPLETIONS' \
+    '# END FOUNDRY COMPLETIONS' \
+    "$FOUNDRY_COMPLETIONS_DOCS"
+}
+
+_add_completions_block() {
+  _profile="$1"
+  _pref_shell="$2"
+  _tool="$3"
+  _zsh_completion_block="$4"
+  _bash_completion_block="$5"
+  _begin_marker="$6"
+  _end_marker="$7"
+  _docs_url="$8"
 
   if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
     return
   fi
 
+  case "$_pref_shell" in
+  zsh)
+    _should_add_autoload=true
+
+    # If autoload exists anywhere in the file, don't add it
+    if grep -q "autoload -Uz compinit && compinit" "$_profile" 2>/dev/null; then
+      _should_add_autoload=false
+    fi
+
+    # Exception: if we're replacing an existing block that contains autoload, preserve it
+    if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+      _existing_block=$(sed -n "/$_begin_marker/,/$_end_marker/p" "$_profile")
+      if echo "$_existing_block" | grep -q "autoload -Uz compinit && compinit"; then
+        _should_add_autoload=true
+      fi
+    fi
+
+    _block="$(eval "$_zsh_completion_block")"
+    ;;
+  bash)
+    _block="$(eval "$_bash_completion_block")"
+    ;;
+  *)
+    if [ -z "$_pref_shell" ]; then
+      warn "Could not detect shell, will not install shell completions for $_tool. To install completions manually, see: ${_docs_url}."
+    else
+      warn "Installation of $_tool shell completions for '$_pref_shell' is not supported by starkup. To install completions manually, see: ${_docs_url}."
+    fi
+    return
+    ;;
+  esac
+
   mkdir -p "$(dirname "$_profile")"
   touch "$_profile"
 
-  # Remove existing completion block if present
-  if grep -F "$_block_begin_marker" "$_profile" >/dev/null 2>&1; then
+  # Remove existing completion block if present and replace it in the same location
+  if grep -F "$_begin_marker" "$_profile" >/dev/null 2>&1; then
+    _start_line=$(grep -n -F "$_begin_marker" "$_profile" | head -1 | cut -d: -f1)
     _tmp=$(mktemp) || return 1
-    sed "/$_block_begin_marker/,/$_block_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+    # Remove the existing block
+    sed "/$_begin_marker/,/$_end_marker/d" "$_profile" >"$_tmp" && mv "$_tmp" "$_profile"
+    # Insert new block at the same line number
+    _tmp2=$(mktemp) || return 1
+    {
+      head -n $((_start_line - 1)) "$_profile" 2>/dev/null || true
+      printf "%s\n" "$_begin_marker"
+      printf "%s\n" "$_block"
+      printf "%s\n" "$_end_marker"
+      tail -n +$((_start_line)) "$_profile" 2>/dev/null || true
+    } >"$_tmp2" && mv "$_tmp2" "$_profile"
+  else
+    {
+      printf "\n%s\n" "$_begin_marker"
+      printf "%s\n" "$_block"
+      printf "%s\n" "$_end_marker"
+    } >>"$_profile"
   fi
 
-  {
-    printf "\n%s\n" "$_block_begin_marker"
-    printf "%s\n" "$_block"
-    printf "\n%s\n" "$_block_end_marker"
-  } >>"$_profile"
-
-  info "Added Scarb shell completions."
+  info "Added $_tool shell completions."
   SHELL_CONFIG_CHANGED=true
-}
-
-zsh_completions_block() {
-  cat <<'EOF'
-_scarb() {
-  if ! scarb completions zsh >/dev/null 2>&1; then
-    return 0
-  fi
-  eval "$(scarb completions zsh)"
-  _scarb "$@"
-}
-autoload -Uz compinit && compinit
-compdef _scarb scarb
-EOF
-}
-
-bash_completions_block() {
-  cat <<'EOF'
-_scarb() {
-  if ! scarb completions bash >/dev/null 2>&1; then
-    return 0
-  fi
-  source <(scarb completions bash)
-  _scarb "$@"
-}
-complete -o default -F _scarb scarb
-EOF
 }
 
 assert_dependencies() {
