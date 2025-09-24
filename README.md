@@ -54,6 +54,12 @@ If you have `curl` installed through `snap` store, Starkup may fail with followi
 curl: (23) client returned ERROR on write of 1317 bytes
 ```
 
+To make sure if `curl` is installed via `snap`, you can run this command:
+
+```sh
+$ sudo snap list | grep curl
+```
+
 In this case, you should try reinstalling `curl` from other distribution channels. 
 For instance, on Debian / Ubuntu based systems you can try running:
 ```sh
