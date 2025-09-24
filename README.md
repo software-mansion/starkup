@@ -46,6 +46,22 @@ Starkup is created by the same team at [Software Mansion] that is behind [Scarb]
 
 Feel free to chat with us on our channel on [Telegram] or [Starknet's Discord]!
 
+## Troubleshooting
+
+If you have `curl` installed through `snap` store, Starkup may fail with following error:
+
+```sh
+curl: (23) client returned ERROR on write of 1317 bytes
+```
+
+In this case, you should try reinstalling `curl` from other distribution channels. 
+For instance, on Debian / Ubuntu based systems you can try running:
+```sh
+$ sudo snap remove curl
+$ sudo apt install curl
+```
+
+
 [Cairo]: https://www.cairo-lang.org/
 [Scarb]: https://docs.swmansion.com/scarb/
 [Software Mansion]: https://swmansion.com/
