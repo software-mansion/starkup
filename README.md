@@ -71,6 +71,7 @@ $ sudo apt install curl
 [Cairo]: https://www.cairo-lang.org/
 [Scarb]: https://docs.swmansion.com/scarb/
 [Software Mansion]: https://swmansion.com/
+[StarkWare]: https://starkware.co/
 [Starknet Foundry]: https://foundry-rs.github.io/starknet-foundry/
 [Cairo Profiler]: https://github.com/software-mansion/cairo-profiler
 [Cairo Coverage]: https://github.com/software-mansion/cairo-coverage
