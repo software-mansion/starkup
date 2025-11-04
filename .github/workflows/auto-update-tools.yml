@@ -1,8 +1,5 @@
 name: Auto Update Tool Versions
 
-env:
-  GITHUB_TOKEN: ${{ github.token }}
-
 on:
   schedule:
     - cron: "0 2 * * 1-5" # 2:00 AM UTC, Monday to Friday
@@ -20,8 +17,10 @@ jobs:
       
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(gh api repos/software-mansion/scarb/releases/latest --jq '.tag_name' | sed 's/^v//')
           echo "Latest Scarb version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -42,8 +41,10 @@ jobs:
 
       - name: Fetch latest Starknet Foundry version from GitHub releases
         id: foundry_version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(gh api repos/foundry-rs/starknet-foundry/releases/latest --jq '.tag_name' | sed 's/^v//')
           echo "Latest Starknet Foundry version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
@@ -89,6 +90,8 @@ jobs:
 
       - name: Create PR for version update
         if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
