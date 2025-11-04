@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 2 * * 1-5" # 2:00 AM UTC, Monday to Friday
   workflow_dispatch: # Allow manual trigger
+  push:
+    paths:
+      - '.github/workflows/auto-update-tools.yml' # Trigger on changes to this workflow for testing
 
 jobs:
   check-and-update-versions:
