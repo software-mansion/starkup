@@ -1,0 +1,168 @@
+name: Auto Update Tool Versions
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5" # 6:00 AM UTC, Monday to Friday
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-scarb-version:
+    name: Check for new Scarb version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch latest Scarb version from GitHub releases
+        id: scarb_version
+        run: |
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/software-mansion/scarb/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Scarb version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check
+        run: |
+          current_version=$(grep "^SCARB_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.scarb_version.outputs.LATEST }}
+          echo "Current version: $current_version"
+          echo "Latest version: $latest_version"
+          if [ "$latest_version" != "$current_version" ]; then
+            echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
+            echo "OLD_VERSION=$current_version" >> $GITHUB_OUTPUT
+            echo "NEW_VERSION=$latest_version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump starkup version
+        if: steps.check.outputs.UPDATE_NEEDED == 'true'
+        id: bump_version
+        run: |
+          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          echo "Current starkup version: $current_script_version"
+          
+          # Parse version and increment patch
+          IFS='.' read -r major minor patch <<< "$current_script_version"
+          new_patch=$((patch + 1))
+          new_script_version="${major}.${minor}.${new_patch}"
+          
+          echo "New starkup version: $new_script_version"
+          echo "NEW_SCRIPT_VERSION=$new_script_version" >> $GITHUB_OUTPUT
+
+      - name: Create PR for version update
+        if: steps.check.outputs.UPDATE_NEEDED == 'true'
+        env:
+          REVIEWERS: ${{ vars.AUTO_UPDATE_REVIEWERS || '' }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          branch_name="bump-scarb-${{ steps.check.outputs.NEW_VERSION }}"
+          git checkout -b "$branch_name"
+          
+          # Update Scarb version
+          sed -i "s/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check.outputs.OLD_VERSION }}\"/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check.outputs.NEW_VERSION }}\"/" starkup.sh
+          
+          # Update starkup version
+          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
+          
+          git add starkup.sh
+          git commit -m "chore: bump Scarb to ${{ steps.check.outputs.NEW_VERSION }} and starkup to ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
+          git push origin "$branch_name"
+          
+          # Build PR command
+          PR_CMD="gh pr create \
+            --title \"chore: bump Scarb to ${{ steps.check.outputs.NEW_VERSION }}\" \
+            --body \"This PR updates Scarb from \`${{ steps.check.outputs.OLD_VERSION }}\` to \`${{ steps.check.outputs.NEW_VERSION }}\` and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release.\" \
+            --label \"dependencies\""
+          
+          # Add reviewers if configured
+          if [ -n "$REVIEWERS" ]; then
+            PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
+          fi
+          
+          eval "$PR_CMD"
+
+  check-foundry-version:
+    name: Check for new Starknet Foundry version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch latest Starknet Foundry version from GitHub releases
+        id: foundry_version
+        run: |
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/foundry-rs/starknet-foundry/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          echo "Latest Starknet Foundry version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check
+        run: |
+          current_version=$(grep "^FOUNDRY_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.foundry_version.outputs.LATEST }}
+          echo "Current version: $current_version"
+          echo "Latest version: $latest_version"
+          if [ "$latest_version" != "$current_version" ]; then
+            echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
+            echo "OLD_VERSION=$current_version" >> $GITHUB_OUTPUT
+            echo "NEW_VERSION=$latest_version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump starkup version
+        if: steps.check.outputs.UPDATE_NEEDED == 'true'
+        id: bump_version
+        run: |
+          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          echo "Current starkup version: $current_script_version"
+          
+          # Parse version and increment patch
+          IFS='.' read -r major minor patch <<< "$current_script_version"
+          new_patch=$((patch + 1))
+          new_script_version="${major}.${minor}.${new_patch}"
+          
+          echo "New starkup version: $new_script_version"
+          echo "NEW_SCRIPT_VERSION=$new_script_version" >> $GITHUB_OUTPUT
+
+      - name: Create PR for version update
+        if: steps.check.outputs.UPDATE_NEEDED == 'true'
+        env:
+          REVIEWERS: ${{ vars.AUTO_UPDATE_REVIEWERS || '' }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          branch_name="bump-foundry-${{ steps.check.outputs.NEW_VERSION }}"
+          git checkout -b "$branch_name"
+          
+          # Update Foundry version
+          sed -i "s/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check.outputs.OLD_VERSION }}\"/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check.outputs.NEW_VERSION }}\"/" starkup.sh
+          
+          # Update starkup version
+          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
+          
+          git add starkup.sh
+          git commit -m "chore: bump Starknet Foundry to ${{ steps.check.outputs.NEW_VERSION }} and starkup to ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
+          git push origin "$branch_name"
+          
+          # Build PR command
+          PR_CMD="gh pr create \
+            --title \"chore: bump Starknet Foundry to ${{ steps.check.outputs.NEW_VERSION }}\" \
+            --body \"This PR updates Starknet Foundry from \`${{ steps.check.outputs.OLD_VERSION }}\` to \`${{ steps.check.outputs.NEW_VERSION }}\` and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release.\" \
+            --label \"dependencies\""
+          
+          # Add reviewers if configured
+          if [ -n "$REVIEWERS" ]; then
+            PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
+          fi
+          
+          eval "$PR_CMD"
