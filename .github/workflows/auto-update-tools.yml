@@ -96,8 +96,8 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Use consistent branch name
-          branch_name="auto-update-tools"
+          # Use unique branch name with starkup version
+          branch_name="auto-update-tools-v${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
           git checkout -b "$branch_name"
           
           # Update Scarb version if needed
@@ -116,7 +116,7 @@ jobs:
           
           git add starkup.sh
           git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
-          git push origin "$branch_name" --force
+          git push origin "$branch_name"
           
           # Build PR title
           pr_title="chore: auto-update tool versions"
@@ -135,24 +135,18 @@ jobs:
           
           pr_body="$pr_body- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
           
-          # Check if PR already exists, if so update it, otherwise create new
-          if gh pr list --head "$branch_name" --json number --jq '.[0].number' | grep -q .; then
-            pr_number=$(gh pr list --head "$branch_name" --json number --jq '.[0].number')
-            gh pr edit "$pr_number" --title "$pr_title" --body "$pr_body"
-          else
-            # Build PR command
-            PR_CMD="gh pr create \
-              --title \"$pr_title\" \
-              --body \"$pr_body\" \
-              --label \"dependencies\""
-            
-            # Add reviewers from file if it exists
-            if [ -f ".reviewers" ]; then
-              REVIEWERS=$(cat .reviewers | tr '\n' ',' | sed 's/,$//')
-              if [ -n "$REVIEWERS" ]; then
-                PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
-              fi
+          # Create PR
+          PR_CMD="gh pr create \
+            --title \"$pr_title\" \
+            --body \"$pr_body\" \
+            --label \"dependencies\""
+          
+          # Add reviewers from file if it exists
+          if [ -f ".reviewers" ]; then
+            REVIEWERS=$(cat .reviewers | tr '\n' ',' | sed 's/,$//')
+            if [ -n "$REVIEWERS" ]; then
+              PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
             fi
-            
-            eval "$PR_CMD"
           fi
+          
+          eval "$PR_CMD"

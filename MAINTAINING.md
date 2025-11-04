@@ -7,7 +7,7 @@ The [Auto Update Tool Versions] workflow runs on weekdays at 2:00 AM UTC and mon
 - [Starknet Foundry] (from `foundry-rs/starknet-foundry`)
 
 When a new stable release is detected, the workflow automatically:
-1. Creates a new branch
+1. Creates a new branch with a unique name that includes the new starkup version (e.g., `auto-update-tools-v0.3.3`)
 2. Updates the corresponding `*_LATEST_COMPATIBLE_VERSION` variable in `starkup.sh`
 3. Bumps the `SCRIPT_VERSION` (patch version) to prepare for a new starkup release
 4. Opens a pull request with the changes
