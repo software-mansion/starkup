@@ -146,7 +146,7 @@ jobs:
           
           # Add reviewers from file if it exists
           if [ -f ".reviewers" ]; then
-            REVIEWERS=$(cat .reviewers | tr '\n' ',' | sed 's/,$//')
+            REVIEWERS=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
             if [ -n "$REVIEWERS" ]; then
               PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
             fi
