@@ -102,13 +102,15 @@ jobs:
           # Use unique branch name with starkup version
           branch_name="auto-update-tools-v${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
           
-          # Delete remote branch if it exists (to handle re-runs)
+          # Check if branch exists remotely
           if git ls-remote --heads origin "$branch_name" | grep -q "$branch_name"; then
-            echo "Branch $branch_name already exists remotely, deleting it..."
-            git push origin --delete "$branch_name" || true
+            echo "Branch $branch_name already exists, updating it..."
+            git fetch origin "$branch_name"
+            git checkout -b "$branch_name" "origin/$branch_name" || git checkout "$branch_name"
+          else
+            echo "Creating new branch $branch_name..."
+            git checkout -b "$branch_name"
           fi
-          
-          git checkout -b "$branch_name"
           
           # Update Scarb version if needed
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
@@ -125,8 +127,8 @@ jobs:
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
-          git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
-          git push origin "$branch_name"
+          git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}" || echo "No changes to commit"
+          git push origin "$branch_name" --force
           
           # Build PR title
           pr_title="chore: auto-update tool versions"
@@ -145,18 +147,26 @@ jobs:
           
           pr_body="$pr_body- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
           
-          # Create PR
-          PR_CMD="gh pr create \
-            --title \"$pr_title\" \
-            --body \"$pr_body\" \
-            --label \"dependencies\""
-          
-          # Add reviewers from file if it exists
-          if [ -f ".reviewers" ]; then
-            REVIEWERS=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
-            if [ -n "$REVIEWERS" ]; then
-              PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
+          # Check if PR already exists for this branch, if so update it, otherwise create new
+          if gh pr list --head "$branch_name" --json number --jq '.[0].number' | grep -q .; then
+            pr_number=$(gh pr list --head "$branch_name" --json number --jq '.[0].number')
+            echo "Updating existing PR #$pr_number..."
+            gh pr edit "$pr_number" --title "$pr_title" --body "$pr_body"
+          else
+            echo "Creating new PR..."
+            # Create PR
+            PR_CMD="gh pr create \
+              --title \"$pr_title\" \
+              --body \"$pr_body\" \
+              --label \"dependencies\""
+            
+            # Add reviewers from file if it exists
+            if [ -f ".reviewers" ]; then
+              REVIEWERS=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+              if [ -n "$REVIEWERS" ]; then
+                PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
+              fi
             fi
+            
+            eval "$PR_CMD"
           fi
-          
-          eval "$PR_CMD"
