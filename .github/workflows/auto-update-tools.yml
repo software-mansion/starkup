@@ -101,6 +101,13 @@ jobs:
           
           # Use unique branch name with starkup version
           branch_name="auto-update-tools-v${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
+          
+          # Delete remote branch if it exists (to handle re-runs)
+          if git ls-remote --heads origin "$branch_name" | grep -q "$branch_name"; then
+            echo "Branch $branch_name already exists remotely, deleting it..."
+            git push origin --delete "$branch_name" || true
+          fi
+          
           git checkout -b "$branch_name"
           
           # Update Scarb version if needed
