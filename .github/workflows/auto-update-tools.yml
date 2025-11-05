@@ -133,19 +133,19 @@ jobs:
           # Build PR title
           pr_title="chore: auto-update tool versions"
           
-          # Build PR body
-          pr_body="This PR updates tool versions and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release."
+          # Build PR body (escape backticks for markdown code)
+          pr_body="This PR updates tool versions and bumps starkup version to \\\`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\\\` for release."
           pr_body="$pr_body\n\n## Changes\n"
           
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            pr_body="$pr_body- Scarb: \`${{ steps.check_scarb.outputs.OLD_VERSION }}\` → \`${{ steps.check_scarb.outputs.NEW_VERSION }}\`\n"
+            pr_body="$pr_body- Scarb: \\\`${{ steps.check_scarb.outputs.OLD_VERSION }}\\\` → \\\`${{ steps.check_scarb.outputs.NEW_VERSION }}\\\`\n"
           fi
           
           if [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            pr_body="$pr_body- Starknet Foundry: \`${{ steps.check_foundry.outputs.OLD_VERSION }}\` → \`${{ steps.check_foundry.outputs.NEW_VERSION }}\`\n"
+            pr_body="$pr_body- Starknet Foundry: \\\`${{ steps.check_foundry.outputs.OLD_VERSION }}\\\` → \\\`${{ steps.check_foundry.outputs.NEW_VERSION }}\\\`\n"
           fi
           
-          pr_body="$pr_body- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
+          pr_body="$pr_body- Starkup version: \\\`${current_script_version}\\\` → \\\`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\\\`"
           
           # Check if PR already exists for this branch, if so update it, otherwise create new
           if gh pr list --head "$branch_name" --json number --jq '.[0].number' | grep -q .; then
@@ -155,18 +155,14 @@ jobs:
           else
             echo "Creating new PR..."
             # Create PR
-            PR_CMD="gh pr create \
-              --title \"$pr_title\" \
-              --body \"$pr_body\" \
-              --label \"dependencies\""
+            gh pr create --title "$pr_title" --body "$pr_body" --label "dependencies"
             
-            # Add reviewers from file if it exists
+            # Add reviewers from file if it exists (ignore errors if reviewers don't exist)
             if [ -f ".reviewers" ]; then
               REVIEWERS=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
               if [ -n "$REVIEWERS" ]; then
-                PR_CMD="$PR_CMD --reviewer \"$REVIEWERS\""
+                echo "Requesting reviews from: $REVIEWERS"
+                gh pr edit --add-reviewer "$REVIEWERS" || echo "Some reviewers could not be added"
               fi
             fi
-            
-            eval "$PR_CMD"
           fi
