@@ -83,7 +83,6 @@ jobs:
           current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
           echo "Current starkup version: $current_script_version"
           
-          # Parse version and increment patch
           IFS='.' read -r major minor patch <<< "$current_script_version"
           new_patch=$((patch + 1))
           new_script_version="${major}.${minor}.${new_patch}"
@@ -99,13 +98,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Capture current starkup version before any modifications
           current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
-          
-          # Use unique branch name with starkup version
           branch_name="auto-update-tools-v${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
           
-          # Check if branch exists remotely
           if git ls-remote --heads origin "$branch_name" | grep -q "$branch_name"; then
             echo "Branch $branch_name already exists, updating it..."
             git fetch origin "$branch_name"
@@ -115,27 +110,21 @@ jobs:
             git checkout -b "$branch_name"
           fi
           
-          # Update Scarb version if needed
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
             sed -i "s/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_scarb.outputs.OLD_VERSION }}\"/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_scarb.outputs.NEW_VERSION }}\"/" starkup.sh
           fi
           
-          # Update Foundry version if needed
           if [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
             sed -i "s/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.OLD_VERSION }}\"/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.NEW_VERSION }}\"/" starkup.sh
           fi
           
-          # Update starkup version
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
           git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}" || echo "No changes to commit"
           git push origin "$branch_name" --force
           
-          # Build PR title
           pr_title="chore: auto-update tool versions"
-          
-          # Build PR body with newlines (will be interpreted by printf)
           pr_body="This PR updates tool versions and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release.\n\n## Changes\n"
           
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
@@ -147,21 +136,15 @@ jobs:
           fi
           
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
-          
-          # Use printf to interpret escape sequences
           pr_body_formatted=$(printf "%b" "$pr_body")
           
-          # Check if PR already exists for this branch, if so update it, otherwise create new
           if gh pr list --head "$branch_name" --json number --jq '.[0].number' | grep -q .; then
             pr_number=$(gh pr list --head "$branch_name" --json number --jq '.[0].number')
             echo "Updating existing PR #$pr_number..."
             gh pr edit "$pr_number" --title "$pr_title" --body "$pr_body_formatted"
           else
             echo "Creating new PR..."
-            # Create PR
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
-            
-            # Request review from the starknet-foundry team
             echo "Requesting review from @software-mansion/starknet-foundry team"
             gh pr edit --add-reviewer "software-mansion/starknet-foundry" || echo "Could not add team as reviewer"
           fi
