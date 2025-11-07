@@ -124,7 +124,7 @@ jobs:
           git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}" || echo "No changes to commit"
           git push origin "$branch_name" --force
           
-          pr_title="chore: auto-update tool versions"
+          pr_title="Bump tools; Prepare release ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
           pr_body="This PR updates tool versions and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release.\n\n## Changes\n"
           
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
