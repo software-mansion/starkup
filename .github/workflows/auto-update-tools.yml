@@ -139,11 +139,11 @@ jobs:
           pr_body="This PR updates tool versions and bumps starkup version to \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\` for release.\n\n## Changes\n"
           
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            pr_body="${pr_body}- Scarb: \`${{ steps.check_scarb.outputs.OLD_VERSION }}\` → \`${{ steps.check_scarb.outputs.NEW_VERSION }}\`\n"
+            pr_body="${pr_body}- Scarb: \`${{ steps.check_scarb.outputs.OLD_VERSION }}\` → [\`${{ steps.check_scarb.outputs.NEW_VERSION }}\`](https://github.com/software-mansion/scarb/releases/tag/v${{ steps.check_scarb.outputs.NEW_VERSION }})\n"
           fi
           
           if [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            pr_body="${pr_body}- Starknet Foundry: \`${{ steps.check_foundry.outputs.OLD_VERSION }}\` → \`${{ steps.check_foundry.outputs.NEW_VERSION }}\`\n"
+            pr_body="${pr_body}- Starknet Foundry: \`${{ steps.check_foundry.outputs.OLD_VERSION }}\` → [\`${{ steps.check_foundry.outputs.NEW_VERSION }}\`](https://github.com/foundry-rs/starknet-foundry/releases/tag/v${{ steps.check_foundry.outputs.NEW_VERSION }})\n"
           fi
           
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
