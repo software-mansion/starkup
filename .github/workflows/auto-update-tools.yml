@@ -145,6 +145,6 @@ jobs:
           else
             echo "Creating new PR..."
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
-            echo "Requesting review from @software-mansion/starknet-foundry team"
-            gh pr edit --add-reviewer "software-mansion/starknet-foundry" || echo "Could not add team as reviewer"
+            echo "Requesting reviews from teams and users..."
+            gh pr edit --add-reviewer "THenry14,software-mansion/scarb-maintainers,software-mansion/starknet-foundry,ksew1" || echo "Could not add all reviewers"
           fi
