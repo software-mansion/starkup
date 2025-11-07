@@ -1,0 +1,7 @@
+# GitHub users and teams to request reviews from for auto-update PRs
+# One per line. Teams should be in the format: org/team-name
+
+THenry14
+software-mansion/scarb-maintainers
+software-mansion/starknet-foundry
+ksew1
