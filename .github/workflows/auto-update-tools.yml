@@ -99,6 +99,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
+          # Capture current starkup version before any modifications
+          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          
           # Use unique branch name with starkup version
           branch_name="auto-update-tools-v${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
           
@@ -123,7 +126,6 @@ jobs:
           fi
           
           # Update starkup version
-          current_script_version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
@@ -159,12 +161,7 @@ jobs:
             # Create PR
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
             
-            # Add reviewers from file if it exists (ignore errors if reviewers don't exist)
-            if [ -f ".reviewers" ]; then
-              REVIEWERS=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
-              if [ -n "$REVIEWERS" ]; then
-                echo "Requesting reviews from: $REVIEWERS"
-                gh pr edit --add-reviewer "$REVIEWERS" || echo "Some reviewers could not be added"
-              fi
-            fi
+            # Request review from the starknet-foundry team
+            echo "Requesting review from @software-mansion/starknet-foundry team"
+            gh pr edit --add-reviewer "software-mansion/starknet-foundry" || echo "Could not add team as reviewer"
           fi
