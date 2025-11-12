@@ -66,10 +66,34 @@ jobs:
             echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Fetch latest Cairo Coverage version from GitHub releases
+        id: coverage_version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest_version=$(gh api repos/software-mansion/cairo-coverage/releases/latest --jq '.tag_name' | sed 's/^v//')
+          echo "Latest Cairo Coverage version found is $latest_version"
+          echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check if Coverage update needed
+        id: check_coverage
+        run: |
+          current_version=$(grep "^COVERAGE_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.coverage_version.outputs.LATEST }}
+          echo "Current Coverage version: $current_version"
+          echo "Latest Coverage version: $latest_version"
+          if [ "$latest_version" != "$current_version" ]; then
+            echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
+            echo "OLD_VERSION=$current_version" >> $GITHUB_OUTPUT
+            echo "NEW_VERSION=$latest_version" >> $GITHUB_OUTPUT
+          else
+            echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Determine if any update is needed
         id: check_any
         run: |
-          if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
+          if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ]; then
             echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
           else
             echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
@@ -118,6 +142,10 @@ jobs:
             sed -i "s/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.OLD_VERSION }}\"/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.NEW_VERSION }}\"/" starkup.sh
           fi
           
+          if [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ]; then
+            sed -i "s/COVERAGE_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_coverage.outputs.OLD_VERSION }}\"/COVERAGE_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_coverage.outputs.NEW_VERSION }}\"/" starkup.sh
+          fi
+          
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
@@ -133,6 +161,10 @@ jobs:
           
           if [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
             pr_body="${pr_body}- Starknet Foundry: \`${{ steps.check_foundry.outputs.OLD_VERSION }}\` → [\`${{ steps.check_foundry.outputs.NEW_VERSION }}\`](https://github.com/foundry-rs/starknet-foundry/releases/tag/v${{ steps.check_foundry.outputs.NEW_VERSION }})\n"
+          fi
+          
+          if [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ]; then
+            pr_body="${pr_body}- Cairo Coverage: \`${{ steps.check_coverage.outputs.OLD_VERSION }}\` → [\`${{ steps.check_coverage.outputs.NEW_VERSION }}\`](https://github.com/software-mansion/cairo-coverage/releases/tag/v${{ steps.check_coverage.outputs.NEW_VERSION }})\n"
           fi
           
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
