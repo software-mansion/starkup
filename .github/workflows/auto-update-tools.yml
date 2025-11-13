@@ -119,9 +119,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          foundry_version=${{ steps.foundry_version.outputs.LATEST }}
-          devnet_version=$(curl -sS --fail -H "Authorization: Bearer $GH_TOKEN" https://raw.githubusercontent.com/foundry-rs/starknet-foundry/v${foundry_version}/.tool-versions | grep "^starknet-devnet" | awk '{print $2}')
-          echo "Starknet Devnet version found in Starknet Foundry v${foundry_version} is $devnet_version"
+          current_foundry_version=$(grep "^FOUNDRY_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          devnet_version=$(curl -sS --fail -H "Authorization: Bearer $GH_TOKEN" https://raw.githubusercontent.com/foundry-rs/starknet-foundry/v${current_foundry_version}/.tool-versions | grep "^starknet-devnet" | awk '{print $2}')
+          echo "Starknet Devnet version found in Starknet Foundry v${current_foundry_version} is $devnet_version"
           echo "LATEST=$devnet_version" >> $GITHUB_OUTPUT
 
       - name: Check if Devnet update needed
