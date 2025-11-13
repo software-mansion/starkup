@@ -116,9 +116,12 @@ jobs:
 
       - name: Fetch Starknet Devnet version from Starknet Foundry .tool-versions
         id: devnet_version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          devnet_version=$(curl -sS https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/.tool-versions | grep "^starknet-devnet" | awk '{print $2}')
-          echo "Starknet Devnet version found in Starknet Foundry is $devnet_version"
+          foundry_version=${{ steps.foundry_version.outputs.LATEST }}
+          devnet_version=$(curl -sS --fail -H "Authorization: Bearer $GH_TOKEN" https://raw.githubusercontent.com/foundry-rs/starknet-foundry/v${foundry_version}/.tool-versions | grep "^starknet-devnet" | awk '{print $2}')
+          echo "Starknet Devnet version found in Starknet Foundry v${foundry_version} is $devnet_version"
           echo "LATEST=$devnet_version" >> $GITHUB_OUTPUT
 
       - name: Check if Devnet update needed
@@ -226,7 +229,7 @@ jobs:
           fi
           
           if [ "${{ steps.check_devnet.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            pr_body="${pr_body}- Starknet Devnet: \`${{ steps.check_devnet.outputs.OLD_VERSION }}\` → \`${{ steps.check_devnet.outputs.NEW_VERSION }}\` (from [Starknet Foundry .tool-versions](https://github.com/foundry-rs/starknet-foundry/blob/master/.tool-versions))\n"
+            pr_body="${pr_body}- Starknet Devnet: \`${{ steps.check_devnet.outputs.OLD_VERSION }}\` → [\`${{ steps.check_devnet.outputs.NEW_VERSION }}\`](https://github.com/0xSpaceShard/starknet-devnet/releases/tag/v${{ steps.check_devnet.outputs.NEW_VERSION }})\n"
           fi
           
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
