@@ -163,6 +163,26 @@ jobs:
           echo "New starkup version: $new_script_version"
           echo "NEW_SCRIPT_VERSION=$new_script_version" >> $GITHUB_OUTPUT
 
+      - name: Read reviewers file
+        if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
+        id: read_reviewers
+        run: |
+          # Always request reviewers from .reviewers file
+          if [ ! -f .reviewers ]; then
+            echo "Error: .reviewers file not found!"
+            exit 1
+          fi
+          
+          echo "Reading reviewers from .reviewers file..."
+          reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+          if [ -z "$reviewers" ]; then
+            echo "Error: No reviewers found in .reviewers file!"
+            exit 1
+          fi
+          
+          echo "REVIEWERS=$reviewers" >> $GITHUB_OUTPUT
+          echo "Found reviewers: $reviewers"
+
       - name: Create PR for version update
         if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
         env:
@@ -244,18 +264,7 @@ jobs:
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
           fi
           
-          # Always request reviewers from .reviewers file
-          if [ ! -f .reviewers ]; then
-            echo "Error: .reviewers file not found!"
-            exit 1
-          fi
-          
-          echo "Requesting reviews from teams and users listed in .reviewers file..."
-          reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
-          if [ -z "$reviewers" ]; then
-            echo "Error: No reviewers found in .reviewers file!"
-            exit 1
-          fi
-          
-          # Request reviewers and fail the job if it fails
+          # Request reviewers using the value read before branch switch
+          reviewers="${{ steps.read_reviewers.outputs.REVIEWERS }}"
+          echo "Requesting reviews from: $reviewers"
           gh pr edit --add-reviewer "$reviewers"
