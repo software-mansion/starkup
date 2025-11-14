@@ -244,10 +244,18 @@ jobs:
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
           fi
           
-          if [ -f .reviewers ]; then
-            echo "Requesting reviews from teams and users listed in .reviewers file..."
-            reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
-            if [ -n "$reviewers" ]; then
-              gh pr edit --add-reviewer "$reviewers" || echo "Could not add all reviewers"
-            fi
+          # Always request reviewers from .reviewers file
+          if [ ! -f .reviewers ]; then
+            echo "Error: .reviewers file not found!"
+            exit 1
           fi
+          
+          echo "Requesting reviews from teams and users listed in .reviewers file..."
+          reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+          if [ -z "$reviewers" ]; then
+            echo "Error: No reviewers found in .reviewers file!"
+            exit 1
+          fi
+          
+          # Request reviewers and fail the job if it fails
+          gh pr edit --add-reviewer "$reviewers"
