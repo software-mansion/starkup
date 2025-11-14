@@ -114,10 +114,35 @@ jobs:
             echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Fetch Starknet Devnet version from Starknet Foundry .tool-versions
+        id: devnet_version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          foundry_version=${{ steps.foundry_version.outputs.LATEST }}
+          devnet_version=$(curl -sS --fail -H "Authorization: Bearer $GH_TOKEN" https://raw.githubusercontent.com/foundry-rs/starknet-foundry/v${foundry_version}/.tool-versions | grep "^starknet-devnet" | awk '{print $2}')
+          echo "Starknet Devnet version found in Starknet Foundry v${foundry_version} is $devnet_version"
+          echo "LATEST=$devnet_version" >> $GITHUB_OUTPUT
+
+      - name: Check if Devnet update needed
+        id: check_devnet
+        run: |
+          current_version=$(grep "^DEVNET_LATEST_COMPATIBLE_VERSION=" starkup.sh | cut -d'"' -f2)
+          latest_version=${{ steps.devnet_version.outputs.LATEST }}
+          echo "Current Devnet version: $current_version"
+          echo "Latest Devnet version: $latest_version"
+          if [ "$latest_version" != "$current_version" ]; then
+            echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
+            echo "OLD_VERSION=$current_version" >> $GITHUB_OUTPUT
+            echo "NEW_VERSION=$latest_version" >> $GITHUB_OUTPUT
+          else
+            echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Determine if any update is needed
         id: check_any
         run: |
-          if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_profiler.outputs.UPDATE_NEEDED }}" = "true" ]; then
+          if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_profiler.outputs.UPDATE_NEEDED }}" = "true" ] || [ "${{ steps.check_devnet.outputs.UPDATE_NEEDED }}" = "true" ]; then
             echo "UPDATE_NEEDED=true" >> $GITHUB_OUTPUT
           else
             echo "UPDATE_NEEDED=false" >> $GITHUB_OUTPUT
@@ -174,6 +199,10 @@ jobs:
             sed -i "s/PROFILER_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_profiler.outputs.OLD_VERSION }}\"/PROFILER_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_profiler.outputs.NEW_VERSION }}\"/" starkup.sh
           fi
           
+          if [ "${{ steps.check_devnet.outputs.UPDATE_NEEDED }}" = "true" ]; then
+            sed -i "s/DEVNET_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_devnet.outputs.OLD_VERSION }}\"/DEVNET_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_devnet.outputs.NEW_VERSION }}\"/" starkup.sh
+          fi
+          
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
@@ -197,6 +226,10 @@ jobs:
           
           if [ "${{ steps.check_profiler.outputs.UPDATE_NEEDED }}" = "true" ]; then
             pr_body="${pr_body}- Cairo Profiler: \`${{ steps.check_profiler.outputs.OLD_VERSION }}\` → [\`${{ steps.check_profiler.outputs.NEW_VERSION }}\`](https://github.com/software-mansion/cairo-profiler/releases/tag/v${{ steps.check_profiler.outputs.NEW_VERSION }})\n"
+          fi
+          
+          if [ "${{ steps.check_devnet.outputs.UPDATE_NEEDED }}" = "true" ]; then
+            pr_body="${pr_body}- Starknet Devnet: \`${{ steps.check_devnet.outputs.OLD_VERSION }}\` → [\`${{ steps.check_devnet.outputs.NEW_VERSION }}\`](https://github.com/0xSpaceShard/starknet-devnet/releases/tag/v${{ steps.check_devnet.outputs.NEW_VERSION }})\n"
           fi
           
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
