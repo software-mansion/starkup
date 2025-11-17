@@ -268,16 +268,56 @@ jobs:
           reviewers="${{ steps.read_reviewers.outputs.REVIEWERS }}"
           echo "Requesting reviews from: $reviewers"
           
-          # Try to add reviewers and fail with a clear error message if it doesn't work
-          if ! gh pr edit --add-reviewer "$reviewers" 2>&1; then
+          # Try to add all reviewers at once first
+          if gh pr edit --add-reviewer "$reviewers" 2>&1; then
+            echo "✅ Successfully added all reviewers"
+          else
             echo ""
-            echo "❌ Failed to add reviewers. This could be because:"
-            echo "  - One or more reviewers don't exist or were deleted"
-            echo "  - One or more teams don't exist in the organization"
-            echo "  - The workflow doesn't have permission to request reviews from certain teams"
+            echo "❌ Failed to add all reviewers at once. Testing each reviewer individually..."
             echo ""
-            echo "Please verify all entries in the .reviewers file:"
-            echo "$reviewers" | tr ',' '\n' | sed 's/^/  - /'
+            
+            # Track failed reviewers
+            failed_reviewers=""
+            successful_reviewers=""
+            
+            # Try each reviewer individually to identify which ones fail
+            IFS=',' read -ra REVIEWER_ARRAY <<< "$reviewers"
+            for reviewer in "${REVIEWER_ARRAY[@]}"; do
+              echo "Testing reviewer: $reviewer"
+              if gh pr edit --add-reviewer "$reviewer" 2>&1; then
+                echo "  ✅ Successfully added: $reviewer"
+                if [ -z "$successful_reviewers" ]; then
+                  successful_reviewers="$reviewer"
+                else
+                  successful_reviewers="$successful_reviewers, $reviewer"
+                fi
+              else
+                echo "  ❌ Failed to add: $reviewer"
+                if [ -z "$failed_reviewers" ]; then
+                  failed_reviewers="$reviewer"
+                else
+                  failed_reviewers="$failed_reviewers, $reviewer"
+                fi
+              fi
+            done
+            
+            # Report results and fail the job
+            echo ""
+            echo "=========================================="
+            echo "REVIEWER REQUEST SUMMARY"
+            echo "=========================================="
+            if [ -n "$successful_reviewers" ]; then
+              echo "✅ Successfully added: $successful_reviewers"
+            fi
+            if [ -n "$failed_reviewers" ]; then
+              echo "❌ Failed to add: $failed_reviewers"
+              echo ""
+              echo "Failed reviewers could be invalid because:"
+              echo "  - User/team doesn't exist or was deleted"
+              echo "  - Workflow doesn't have permission to request reviews"
+              echo "  - User/team is not a collaborator on the repository"
+            fi
+            echo "=========================================="
             echo ""
             exit 1
           fi
