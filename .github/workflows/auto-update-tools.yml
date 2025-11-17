@@ -244,10 +244,13 @@ jobs:
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
           fi
           
+          # Request reviews from users in .reviewers file
+          # NOTE: Teams (e.g., org/team-name) are not supported due to GitHub Actions permission limitations.
+          # Only individual GitHub usernames work. Documentation is in MAINTAINING.md.
           if [ -f .reviewers ]; then
-            echo "Requesting reviews from teams and users listed in .reviewers file..."
+            echo "Requesting reviews from users listed in .reviewers file..."
             reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
             if [ -n "$reviewers" ]; then
-              gh pr edit --add-reviewer "$reviewers" || echo "Could not add all reviewers"
+              gh pr edit --add-reviewer "$reviewers"
             fi
           fi
