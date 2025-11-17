@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      members: read  # Required to request reviews from organization teams
     steps:
       - uses: actions/checkout@v4
       
@@ -164,26 +163,6 @@ jobs:
           echo "New starkup version: $new_script_version"
           echo "NEW_SCRIPT_VERSION=$new_script_version" >> $GITHUB_OUTPUT
 
-      - name: Read reviewers file
-        if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
-        id: read_reviewers
-        run: |
-          # Always request reviewers from .reviewers file
-          if [ ! -f .reviewers ]; then
-            echo "Error: .reviewers file not found!"
-            exit 1
-          fi
-          
-          echo "Reading reviewers from .reviewers file..."
-          reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
-          if [ -z "$reviewers" ]; then
-            echo "Error: No reviewers found in .reviewers file!"
-            exit 1
-          fi
-          
-          echo "REVIEWERS=$reviewers" >> $GITHUB_OUTPUT
-          echo "Found reviewers: $reviewers"
-
       - name: Create PR for version update
         if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
         env:
@@ -265,60 +244,12 @@ jobs:
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
           fi
           
-          # Request reviewers using the value read before branch switch
-          reviewers="${{ steps.read_reviewers.outputs.REVIEWERS }}"
-          echo "Requesting reviews from: $reviewers"
-          
-          # Try to add all reviewers at once first
-          if gh pr edit --add-reviewer "$reviewers" 2>&1; then
-            echo "✅ Successfully added all reviewers"
-          else
-            echo ""
-            echo "❌ Failed to add all reviewers at once. Testing each reviewer individually..."
-            echo ""
-            
-            # Track failed reviewers
-            failed_reviewers=""
-            successful_reviewers=""
-            
-            # Try each reviewer individually to identify which ones fail
-            IFS=',' read -ra REVIEWER_ARRAY <<< "$reviewers"
-            for reviewer in "${REVIEWER_ARRAY[@]}"; do
-              echo "Testing reviewer: $reviewer"
-              if gh pr edit --add-reviewer "$reviewer" 2>&1; then
-                echo "  ✅ Successfully added: $reviewer"
-                if [ -z "$successful_reviewers" ]; then
-                  successful_reviewers="$reviewer"
-                else
-                  successful_reviewers="$successful_reviewers, $reviewer"
-                fi
-              else
-                echo "  ❌ Failed to add: $reviewer"
-                if [ -z "$failed_reviewers" ]; then
-                  failed_reviewers="$reviewer"
-                else
-                  failed_reviewers="$failed_reviewers, $reviewer"
-                fi
-              fi
-            done
-            
-            # Report results and fail the job
-            echo ""
-            echo "=========================================="
-            echo "REVIEWER REQUEST SUMMARY"
-            echo "=========================================="
-            if [ -n "$successful_reviewers" ]; then
-              echo "✅ Successfully added: $successful_reviewers"
+          # NOTE: Teams (e.g., org/team-name) don't work in GitHub Actions workflows due to permission limitations.
+          # Use specific usernames instead. See issue for future support.
+          if [ -f .reviewers ]; then
+            echo "Requesting reviews from users listed in .reviewers file..."
+            reviewers=$(grep -v '^#' .reviewers | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+            if [ -n "$reviewers" ]; then
+              gh pr edit --add-reviewer "$reviewers"
             fi
-            if [ -n "$failed_reviewers" ]; then
-              echo "❌ Failed to add: $failed_reviewers"
-              echo ""
-              echo "Failed reviewers could be invalid because:"
-              echo "  - User/team doesn't exist or was deleted"
-              echo "  - Workflow doesn't have permission to request reviews"
-              echo "  - User/team is not a collaborator on the repository"
-            fi
-            echo "=========================================="
-            echo ""
-            exit 1
           fi

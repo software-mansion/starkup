@@ -1,7 +1,13 @@
-# GitHub users and teams to request reviews from for auto-update PRs
-# One per line. Teams should be in the format: org/team-name
+# GitHub users to request reviews from for auto-update PRs
+# One per line.
+# NOTE: Teams (e.g., org/team-name) are not supported in GitHub Actions workflows.
+# Use specific usernames only.
 
 THenry14
-software-mansion/scarb-maintainers
-software-mansion/starknet-foundry
+cptartur
+franciszekjob
+MKowalski8
 ksew1
+maciektr
+DelevoXDG
+FroyaTheHen
