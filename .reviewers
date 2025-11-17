@@ -1,8 +1,3 @@
-# GitHub users to request reviews from for auto-update PRs
-# One per line.
-# NOTE: Teams (e.g., org/team-name) are not supported in GitHub Actions workflows.
-# Use specific usernames only.
-
 THenry14
 cptartur
 franciszekjob
