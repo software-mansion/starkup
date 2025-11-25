@@ -232,7 +232,12 @@ jobs:
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
           
           git add starkup.sh
-          git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}" || echo "No changes to commit"
+          changes_committed=false
+          if git commit -m "chore: auto-update tool versions to starkup ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"; then
+            changes_committed=true
+          else
+            echo "No changes to commit"
+          fi
           git push origin "$branch_name" --force
           
           pr_title="Bump tools; Prepare release ${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}"
@@ -261,6 +266,7 @@ jobs:
           pr_body="${pr_body}- Starkup version: \`${current_script_version}\` → \`${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\`"
           pr_body_formatted=$(printf "%b" "$pr_body")
           
+          pr_created=false
           if gh pr list --head "$branch_name" --json number --jq '.[0].number' | grep -q .; then
             pr_number=$(gh pr list --head "$branch_name" --json number --jq '.[0].number')
             echo "Updating existing PR #$pr_number..."
@@ -268,9 +274,15 @@ jobs:
           else
             echo "Creating new PR..."
             gh pr create --title "$pr_title" --body "$pr_body_formatted" --label "dependencies"
+            pr_created=true
           fi
           
-          # Request reviews using the value read before branch switch
-          reviewers="${{ steps.read_reviewers.outputs.REVIEWERS }}"
-          echo "Requesting reviews from: $reviewers"
-          gh pr edit --add-reviewer "$reviewers"
+          # Only request reviews if PR was newly created or changes were committed
+          # This prevents re-requesting reviews on workflow reruns that don't modify the PR
+          if [ "$pr_created" = "true" ] || [ "$changes_committed" = "true" ]; then
+            reviewers="${{ steps.read_reviewers.outputs.REVIEWERS }}"
+            echo "Requesting reviews from: $reviewers"
+            gh pr edit --add-reviewer "$reviewers"
+          else
+            echo "Skipping reviewer request - no changes were made to the PR"
+          fi
