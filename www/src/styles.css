@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-primary: #28286a;
+  --c-secondary: #5d559e;
+  --c-accent: #d5c7ff;
+  --c-muted: #666666;
+  --c-page-bg: #f6f6f6;
+  --c-card-bg: #ffffff;
+  --c-snippet-bg: #f6f6f6;
+  --c-snippet-text: #1f2937;
+  --c-border: #e5e7eb;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-primary: #abbcf5;
+    --c-secondary: #8b82c3;
+    --c-accent: #5d559e;
+    --c-muted: #98989f;
+    --c-page-bg: #161618;
+    --c-card-bg: #1b1b1f;
+    --c-snippet-bg: #232326;
+    --c-snippet-text: #dfdfd6;
+    --c-border: #2b2d31;
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+html {
+  @apply bg-page-bg;
+}
+
+@layer components {
+  .card { @apply bg-card-bg rounded-lg shadow-card p-8; }
+  .link { @apply text-secondary no-underline border-b border-secondary hover:text-primary hover:border-primary transition-colors; }
+
+  /* Snippet */
+  .snippet { @apply relative bg-snippet-bg border border-border rounded-lg; }
+  /* Note: right padding is to accommodate copy button. Adjust if button size changes */
+  .snippet-code { @apply font-mono text-[0.95rem] text-snippet-text text-left py-4 px-5 pr-28 overflow-x-auto whitespace-nowrap; }
+  .snippet-code::before {
+    content: "$ ";
+    @apply text-secondary;
+  }
+
+  /* Copy button */
+  .copy-button {
+    @apply absolute right-2 top-[0.55rem] h-9 px-4 flex items-center gap-2
+           bg-secondary dark:bg-accent text-white dark:text-snippet-text rounded-md cursor-pointer
+           transition-all duration-150 ease-out;
+  }
+  .copy-button:hover { @apply bg-primary dark:bg-secondary scale-105; }
+  .copy-button:active { @apply scale-95 duration-100; }
+  .copy-button.copied { @apply bg-green-600; }
+  .copy-button svg { @apply size-5 shrink-0 transition-all duration-75; }
+  .copy-button .label-copied { @apply absolute left-9 opacity-0; }
+  .copy-button .label-copy, .copy-button .label-copied { @apply text-sm font-bold transition-opacity duration-75; }
+  .copy-button .icon-check { @apply absolute left-3 opacity-0 scale-50; }
+  .copy-button.copied .icon-copy { @apply opacity-0 scale-50; }
+  .copy-button.copied .icon-check { @apply opacity-100 scale-100; }
+  .copy-button.copied .label-copy { @apply opacity-0; }
+  .copy-button.copied .label-copied { @apply opacity-100; }
+
+  /* Footer */
+  .footer-logo { @apply text-muted hover:text-primary transition-colors; }
+  .footer-link { @apply flex items-center gap-2 text-muted hover:text-primary transition-colors; }
+  .footer-link svg { @apply size-5; }
+}
