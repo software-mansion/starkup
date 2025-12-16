@@ -7,9 +7,7 @@
     "dev:public": "chokidar 'public/*' -c 'cp -r public/* dist/'",
     "dev:serve": "browser-sync start --server dist --files 'dist/*' --no-open",
     "build": "mkdir -p dist && npx tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify && cp -r public/* dist/",
-    "fmt": "npm run fmt:html && npm run fmt:js",
-    "fmt:html": "js-beautify --html -r public/*.html --indent-size 2 --wrap-line-length 120 --wrap-attributes aligned-multiple --wrap-attributes-min-attrs 3",
-    "fmt:js": "js-beautify -r public/*.js --indent-size 2 --brace-style collapse-preserve-inline"
+    "fmt": "js-beautify --html -r public/*.html && js-beautify -r public/*.js"
   },
   "devDependencies": {
     "browser-sync": "^3.0.0",
