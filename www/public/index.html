@@ -23,9 +23,28 @@
       </p>
     </header>
     <!-- Install section -->
-    <section class="card text-center py-11 mb-14">
-      <p class="text-muted text-xl mb-6">
+    <section class="card text-center mb-14">
+      <!-- Windows warning -->
+      <div id="warning-windows" class="hidden notice notice-warning mb-6">
+        <p class="font-semibold mb-1">WSL Required</p>
+        <p class="text-sm">
+          Starkup can be used on Linux & macOS. To use on Windows, please use
+          <a href="https://learn.microsoft.com/en-us/windows/wsl/install" target="_blank" rel="noopener">Windows
+            Subsystem for Linux (WSL)</a>
+          to run the command below.
+        </p>
+      </div>
+      <!-- Unknown platform warning -->
+      <div id="warning-unknown" class="hidden notice notice-warning mb-6">
+        <p class="font-semibold mb-1">Unrecognized Platform</p>
+        <p class="text-sm">We couldn't detect your platform. Starkup can be used on Linux, macOS & Windows (via WSL).
+        </p>
+      </div>
+      <p id="instructions-default" class="text-muted text-xl mb-6">
         Run the following in your terminal, then follow the onscreen instructions:
+      </p>
+      <p id="instructions-unknown" class="hidden text-muted text-xl mb-6">
+        If you're running Unix, run the following in your terminal, then follow the onscreen instructions:
       </p>
       <div class="snippet">
         <pre class="snippet-code">
