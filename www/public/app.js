@@ -1,7 +1,7 @@
 const INSTALL_COMMAND = "curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh";
 
 // Attempt to recognize Unix and Windows platforms, return "unknown" for others.
-export function detectPlatform() {
+function detectPlatform() {
   const userAgent = navigator.userAgent || "";
   const platform = navigator.platform || "";
   const userAgentHints = navigator.userAgentData;
