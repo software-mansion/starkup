@@ -2,16 +2,14 @@
   "name": "starkup-landing",
   "private": true,
   "scripts": {
-    "dev": "mkdir -p dist && cp -r public/* dist/ && concurrently \"npm run dev:css\" \"npm run dev:public\" \"npm run dev:serve\"",
-    "dev:css": "npx tailwindcss -i ./src/styles.css -o ./dist/styles.css --watch",
-    "dev:public": "chokidar 'public/*' -c 'cp -r public/* dist/'",
-    "dev:serve": "browser-sync start --server dist --files 'dist/*' --no-open",
+    "dev": "concurrently \"npm run dev:css\" \"npm run dev:serve\"",
+    "dev:css": "npx tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
+    "dev:serve": "browser-sync start --server public --files 'public/*' --no-open",
     "build": "mkdir -p dist && npx tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify && cp -r public/* dist/",
     "fmt": "js-beautify --html -r public/*.html && js-beautify -r public/*.js"
   },
   "devDependencies": {
     "browser-sync": "^3.0.0",
-    "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.0",
     "js-beautify": "^1.15.0",
     "tailwindcss": "^3.4.0"
