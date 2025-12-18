@@ -65,6 +65,16 @@
   .notice-warning { @apply bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 text-amber-900 dark:text-amber-200; }
   .notice-warning a { @apply text-amber-800 dark:text-amber-300 underline transition-colors hover:text-amber-950 dark:hover:text-amber-100; }
 
+  /* Installed tools section components */
+  .tools-grid { @apply grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-5 list-none p-0 mb-4; }
+  .tool-card { @apply flex flex-row items-center gap-3 p-3 pl-4 bg-page-bg rounded-md border-l-[3px] border-accent dark:border-secondary no-underline transition-all hover:border-secondary; }
+  .tool-icon { @apply size-8 shrink-0 object-contain; }
+  .tool-info { @apply flex flex-col; }
+  .tool-name { @apply font-semibold text-primary transition-colors; }
+  .tool-card:hover .tool-name { @apply text-secondary; }
+  .tool-name:hover { @apply underline; }
+  .tool-desc { @apply text-sm text-muted; }
+
   /* Footer */
   .footer-logo { @apply text-muted hover:text-primary transition-colors; }
   .footer-link { @apply flex items-center gap-2 text-muted hover:text-primary transition-colors; }
