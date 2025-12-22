@@ -1,0 +1,17 @@
+{
+  "name": "starkup-landing",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:css\" \"npm run dev:serve\"",
+    "dev:css": "npx tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
+    "dev:serve": "browser-sync start --server public --files 'public/*' --no-open",
+    "build": "mkdir -p dist && npx tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify && cp -r public/* dist/",
+    "fmt": "js-beautify --html -r public/*.html && js-beautify -r public/*.js"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.0",
+    "concurrently": "^9.2.0",
+    "js-beautify": "^1.15.0",
+    "tailwindcss": "^3.4.0"
+  }
+}

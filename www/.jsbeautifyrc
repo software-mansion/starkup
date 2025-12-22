@@ -1,0 +1,23 @@
+{
+  "html": {
+    "indent_size": 2,
+    "wrap_line_length": 120,
+    "wrap_attributes": "aligned-multiple",
+    "wrap_attributes_min_attrs": 3,
+    "preserve_newlines": true,
+    "max_preserve_newlines": 2,
+    "unformatted": ["code", "pre"],
+    "content_unformatted": ["pre", "code"],
+    "end_with_newline": true,
+    "indent_empty_lines": false
+  },
+  "js": {
+    "indent_size": 2,
+    "brace_style": "collapse-preserve-inline",
+    "keep_array_indentation": true,
+    "preserve_newlines": true,
+    "max_preserve_newlines": 2,
+    "end_with_newline": true,
+    "indent_empty_lines": false
+  }
+}
