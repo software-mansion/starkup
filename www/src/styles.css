@@ -29,10 +29,6 @@
   }
 }
 
-html {
-  @apply bg-page-bg;
-}
-
 @layer components {
   .card { @apply bg-card-bg rounded-lg shadow-card p-8; }
   .link { @apply text-secondary no-underline border-b border-secondary hover:text-primary hover:border-primary transition-colors; }
