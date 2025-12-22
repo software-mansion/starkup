@@ -60,6 +60,11 @@
   .copy-button.copied .label-copy { @apply opacity-0; }
   .copy-button.copied .label-copied { @apply opacity-100; }
 
+  /* Notice, warning */
+  .notice { @apply p-4 rounded-lg text-left; }
+  .notice-warning { @apply bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 text-amber-900 dark:text-amber-200; }
+  .notice-warning a { @apply text-amber-800 dark:text-amber-300 underline transition-colors hover:text-amber-950 dark:hover:text-amber-100; }
+
   /* Footer */
   .footer-logo { @apply text-muted hover:text-primary transition-colors; }
   .footer-link { @apply flex items-center gap-2 text-muted hover:text-primary transition-colors; }
