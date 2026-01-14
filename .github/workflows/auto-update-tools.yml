@@ -210,23 +210,23 @@ jobs:
           fi
           
           if [ "${{ steps.check_scarb.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            sed -i "s/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_scarb.outputs.OLD_VERSION }}\"/SCARB_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_scarb.outputs.NEW_VERSION }}\"/" starkup.sh
+            sed -i -E 's/^(SCARB_LATEST_COMPATIBLE_VERSION=")[^"]*(".*)$/\1'"${{ steps.check_scarb.outputs.NEW_VERSION }}"'\2/' starkup.sh
           fi
           
           if [ "${{ steps.check_foundry.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            sed -i "s/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.OLD_VERSION }}\"/FOUNDRY_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_foundry.outputs.NEW_VERSION }}\"/" starkup.sh
+            sed -i -E 's/^(FOUNDRY_LATEST_COMPATIBLE_VERSION=")[^"]*(".*)$/\1'"${{ steps.check_foundry.outputs.NEW_VERSION }}"'\2/' starkup.sh
           fi
           
           if [ "${{ steps.check_coverage.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            sed -i "s/COVERAGE_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_coverage.outputs.OLD_VERSION }}\"/COVERAGE_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_coverage.outputs.NEW_VERSION }}\"/" starkup.sh
+            sed -i -E 's/^(COVERAGE_LATEST_COMPATIBLE_VERSION=")[^"]*(".*)$/\1'"${{ steps.check_coverage.outputs.NEW_VERSION }}"'\2/' starkup.sh
           fi
           
           if [ "${{ steps.check_profiler.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            sed -i "s/PROFILER_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_profiler.outputs.OLD_VERSION }}\"/PROFILER_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_profiler.outputs.NEW_VERSION }}\"/" starkup.sh
+            sed -i -E 's/^(PROFILER_LATEST_COMPATIBLE_VERSION=")[^"]*(".*)$/\1'"${{ steps.check_profiler.outputs.NEW_VERSION }}"'\2/' starkup.sh
           fi
           
           if [ "${{ steps.check_devnet.outputs.UPDATE_NEEDED }}" = "true" ]; then
-            sed -i "s/DEVNET_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_devnet.outputs.OLD_VERSION }}\"/DEVNET_LATEST_COMPATIBLE_VERSION=\"${{ steps.check_devnet.outputs.NEW_VERSION }}\"/" starkup.sh
+            sed -i -E 's/^(DEVNET_LATEST_COMPATIBLE_VERSION=")[^"]*(".*)$/\1'"${{ steps.check_devnet.outputs.NEW_VERSION }}"'\2/' starkup.sh
           fi
           
           sed -i "s/SCRIPT_VERSION=\"${current_script_version}\"/SCRIPT_VERSION=\"${{ steps.bump_version.outputs.NEW_SCRIPT_VERSION }}\"/" starkup.sh
