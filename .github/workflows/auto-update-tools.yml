@@ -286,3 +286,44 @@ jobs:
           else
             echo "Skipping reviewer request - no changes were made to the PR"
           fi
+          
+          # Ping pending reviewers if PR already existed (not newly created)
+          if [ "$pr_created" = "false" ]; then
+            echo "PR already existed, checking for pending reviewers to ping..."
+            
+            # Get reviewers who requested changes
+            # State can be: APPROVED, CHANGES_REQUESTED, COMMENTED, DISMISSED, PENDING
+            changes_requested=$(gh pr view "$pr_number" --json reviews --jq '[.reviews[] | select(.state == "CHANGES_REQUESTED")] | unique_by(.author.login) | .[].author.login' 2>/dev/null || echo "")
+            changes_requested=$(echo "$changes_requested" | xargs)  # Trim whitespace
+            
+            # If there are reviewers who requested changes, only ping them
+            # Otherwise, ping all pending reviewers (who haven't submitted a review yet)
+            if [ -n "$changes_requested" ]; then
+              echo "Found reviewers who requested changes: $changes_requested"
+              reviewers_to_ping="$changes_requested"
+            else
+              echo "No reviewers requested changes, checking for pending reviewers..."
+              pending_reviewers=$(gh pr view "$pr_number" --json reviewRequests --jq '.reviewRequests[].login' 2>/dev/null || echo "")
+              reviewers_to_ping=$(echo "$pending_reviewers" | xargs)  # Trim whitespace
+            fi
+            
+            if [ -z "$reviewers_to_ping" ]; then
+              echo "No reviewers to ping"
+            else
+              echo "Reviewers to ping: $reviewers_to_ping"
+              
+              # Build ping message
+              ping_message="👋 Friendly reminder: This PR is awaiting your review.\n\n"
+              for reviewer in $reviewers_to_ping; do
+                ping_message="${ping_message}@${reviewer} "
+              done
+              ping_message="${ping_message}\n\nPlease take a moment to review when you have time. Thank you!"
+              
+              # Post comment
+              echo "Posting ping comment..."
+              printf "%b" "$ping_message" | gh pr comment "$pr_number" --body-file -
+              echo "Successfully pinged reviewers"
+            fi
+          else
+            echo "PR was newly created, skipping pending reviewer ping"
+          fi
