@@ -57,11 +57,10 @@ jobs:
           echo "STARKUP_TAG: $STARKUP_TAG"
           [ "$STARKUP_TAG" = "starkup: starkup ${RELEASE_TAG#?}" ] || { echo "Release verification failed."; exit 1; }
 
-      - name: Draft GitHub release
+      - name: GitHub release
         run: |
           gh release create \
             "$RELEASE_TAG" \
-            --draft \
             --title "$RELEASE_TAG" \
             --generate-notes \
             --verify-tag

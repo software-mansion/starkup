@@ -11,7 +11,7 @@ A tag should trigger a [Release] workflow which uploads the script to [sh.starku
 
 ### Publish release notes
 
-Upon completion, the [Release] workflow should draft a release on GitHub.
-Usually, it's enough to publish the auto-generated release notes. 
+Upon completion, the [Release] workflow should publish a release on GitHub.
+Usually, it's enough to publish the auto-generated release notes.
 
 [release]: https://github.com/software-mansion/starkup/blob/main/.github/workflows/release.yml
