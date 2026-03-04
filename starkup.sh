@@ -7,7 +7,7 @@ SCRIPT_VERSION="0.3.7"
 SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
 
-ASDF_DEFAULT_VERSION="0.18.0"
+ASDF_DEFAULT_VERSION="0.18.1"
 ASDF_INSTALL_DOCS="https://asdf-vm.com/guide/getting-started.html"
 ASDF_MIGRATION_DOCS="https://asdf-vm.com/guide/upgrading-to-v0-16.html"
 ASDF_SHIMS="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
