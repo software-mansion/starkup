@@ -1,0 +1,36 @@
+name: Create Release Tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  create-tag:
+    name: Create release tag
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'auto-update-tools-v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Read version and create tag
+        env:
+          GH_TOKEN: ${{ secrets.STARKUP_TOKEN }}
+        run: |
+          version=$(grep "^SCRIPT_VERSION=" starkup.sh | cut -d'"' -f2)
+          tag="v$version"
+          echo "Creating tag $tag on ${{ github.event.pull_request.merge_commit_sha }}"
+
+          if gh api "repos/${{ github.repository }}/git/ref/tags/$tag" &>/dev/null; then
+            echo "Tag $tag already exists, skipping."
+            exit 0
+          fi
+
+          gh api repos/${{ github.repository }}/git/refs \
+            -X POST \
+            -f ref="refs/tags/$tag" \
+            -f sha="${{ github.event.pull_request.merge_commit_sha }}"
