@@ -192,7 +192,7 @@ jobs:
       - name: Create PR for version update
         if: steps.check_any.outputs.UPDATE_NEEDED == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.STARKUP_TOKEN }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
