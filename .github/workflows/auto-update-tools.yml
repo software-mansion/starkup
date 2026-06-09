@@ -17,6 +17,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.STARKUP_TOKEN }}
       
       - name: Fetch latest Scarb version from GitHub releases
         id: scarb_version
