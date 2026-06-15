@@ -94,7 +94,7 @@ jobs:
       - name: Fetch latest Starknet Devnet version from GitHub releases
         id: devnet_version
         run: |
-          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/0xSpaceShard/starknet-devnet/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
+          latest_version=$(curl -sS --fail -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/starknet-io/starknet-devnet/releases/latest | grep \"tag_name\": | awk '{print $2}' | tr -d 'v",')
           echo "Latest Starknet Devnet version found is $latest_version"
           echo "LATEST=$latest_version" >> $GITHUB_OUTPUT
 
