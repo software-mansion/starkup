@@ -2,7 +2,7 @@
 
 set -eu
 
-SCRIPT_VERSION="0.3.19"
+SCRIPT_VERSION="0.3.20"
 
 SCRIPT_URL="https://sh.starkup.sh"
 REPO_URL="https://github.com/software-mansion/starkup"
@@ -38,7 +38,7 @@ SCARB_UNINSTALL_INSTRUCTIONS="For uninstallation instructions, refer to https://
 GENERAL_UNINSTALL_INSTRUCTIONS="Try removing TOOL binaries from ${LOCAL_BIN}"
 
 # Set of latest mutually compatible tool versions
-SCARB_LATEST_COMPATIBLE_VERSION="2.20.1"
+SCARB_LATEST_COMPATIBLE_VERSION="2.21.0"
 FOUNDRY_LATEST_COMPATIBLE_VERSION="0.64.1"
 COVERAGE_LATEST_COMPATIBLE_VERSION="0.6.1"
 PROFILER_LATEST_COMPATIBLE_VERSION="0.17.0"
