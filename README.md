@@ -10,6 +10,8 @@ Run the following in your terminal, then follow the onscreen instructions.
 curl --proto '=https' --tlsv1.2 -sSf https://sh.starkup.sh | sh
 ```
 
+Starkup configures PATH, the `starkup` alias, and Scarb/Starknet Foundry completions for Bash, Zsh, and Fish. Fish configuration is written to `XDG_CONFIG_HOME/fish/config.fish` (default: `~/.config/fish/config.fish`).
+
 ## Supported tools
 
 Starkup supports the installation of the following tools:
