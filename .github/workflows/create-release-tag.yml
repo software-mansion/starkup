@@ -13,7 +13,7 @@ jobs:
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'auto-update-tools-v')
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
 
