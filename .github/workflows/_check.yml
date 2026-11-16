@@ -21,7 +21,7 @@ jobs:
       profiler: ${{ steps.extract.outputs.PROFILER_COMPATIBLE_VERSION }}
       devnet: ${{ steps.extract.outputs.DEVNET_COMPATIBLE_VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
       
       - name: Extract compatible versions from starkup.sh
         id: extract
@@ -105,10 +105,10 @@ jobs:
       ASDF_VERSION: v0.15.0
     runs-on: ${{ inputs.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
 
       - name: Setup legacy asdf
-        uses: asdf-vm/actions/setup@v3
+        uses: asdf-vm/actions/setup@v3.0.2
         with:
           asdf_branch: ${{ env.ASDF_VERSION }}
 
@@ -140,7 +140,7 @@ jobs:
     needs: [extract-compatible-versions, fetch-latest-versions]
     runs-on: ${{ inputs.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
 
       - name: Run starkup
         shell: bash
@@ -175,7 +175,7 @@ jobs:
     needs: fetch-latest-versions
     runs-on: ${{ inputs.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
 
       - name: Run starkup with latest version set
         shell: bash
@@ -211,7 +211,7 @@ jobs:
       ASDF_VERSION: 0.16.0
     runs-on: ${{ inputs.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
 
       - name: Fetch latest asdf version from GitHub releases
         id: asdf_version
