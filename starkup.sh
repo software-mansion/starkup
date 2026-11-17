@@ -159,6 +159,11 @@ main() {
     shell_source_hint="Run 'source ${shell_config}'"
     pref_shell="bash"
     ;;
+  */fish)
+    shell_config="${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
+    shell_source_hint="Run 'source ${shell_config}'"
+    pref_shell="fish"
+    ;;
   */sh)
     shell_config="$HOME/.profile"
     shell_source_hint="Run '. ${shell_config}'"
@@ -170,7 +175,11 @@ main() {
     ;;
   esac
 
-  add_alias "${shell_config}"
+  add_alias "${shell_config}" "${pref_shell}"
+
+  if [ "$pref_shell" = "fish" ]; then
+    add_fish_paths "${shell_config}"
+  fi
 
   add_scarb_completions "${shell_config}" "${pref_shell}"
 
@@ -206,13 +215,23 @@ warn_missing_path_entries() {
 
 add_alias() {
   _shell_config="$1"
-  _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+  _pref_shell="$2"
+  case "$_pref_shell" in
+  fish)
+    _alias_def="alias starkup \"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+    ;;
+  *)
+    _alias_def="alias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
+    ;;
+  esac
 
   if [ -z "$_shell_config" ]; then
     warn "Could not detect shell. To simplify access to the installer, add the following to your shell configuration file:\nalias starkup=\"curl --proto '=https' --tlsv1.2 -sSf ${SCRIPT_URL} | sh -s --\""
     return
   fi
 
+  mkdir -p "$(dirname "$_shell_config")"
+  touch "$_shell_config"
   if ! grep -q "^alias starkup" "${_shell_config}"; then
     cat <<EOF >>"${_shell_config}"
 # Alias for running starkup installer
@@ -221,6 +240,29 @@ EOF
     info "'starkup' alias added to ${_shell_config}. You can use 'starkup' to directly access the installer next time."
     SHELL_CONFIG_CHANGED=true
   fi
+}
+
+add_fish_paths() {
+  _shell_config="$1"
+  _begin_marker="# BEGIN STARKUP PATH"
+
+  if grep -Fq "$_begin_marker" "$_shell_config"; then
+    return
+  fi
+
+  cat <<EOF >>"$_shell_config"
+
+$_begin_marker
+fish_add_path --global "\$HOME/.local/bin"
+if set -q ASDF_DATA_DIR
+  fish_add_path --global "\$ASDF_DATA_DIR/shims"
+else
+  fish_add_path --global "\$HOME/.asdf/shims"
+end
+# END STARKUP PATH
+EOF
+  info "Added Fish PATH entries."
+  SHELL_CONFIG_CHANGED=true
 }
 
 add_scarb_completions() {
@@ -232,6 +274,7 @@ add_scarb_completions() {
     "Scarb" \
     "generate_zsh_completions \"scarb\" \"\$_should_add_autoload\"" \
     'generate_bash_completions "scarb"' \
+    'generate_fish_completions "scarb"' \
     '# BEGIN SCARB COMPLETIONS' \
     '# END SCARB COMPLETIONS' \
     "$SCARB_COMPLETIONS_DOCS"
@@ -284,6 +327,19 @@ EOF
   done
 }
 
+generate_fish_completions() {
+  _commands="$1"
+
+  for _cmd in $_commands; do
+    cat <<EOF
+if command -q $_cmd
+  $_cmd completions fish | source
+end
+
+EOF
+  done
+}
+
 add_foundry_completions() {
   _profile="$1"
   _pref_shell="$2"
@@ -293,6 +349,7 @@ add_foundry_completions() {
     "Starknet Foundry" \
     "generate_zsh_completions \"snforge sncast\" \"\$_should_add_autoload\"" \
     'generate_bash_completions "snforge sncast"' \
+    'generate_fish_completions "snforge sncast"' \
     '# BEGIN FOUNDRY COMPLETIONS' \
     '# END FOUNDRY COMPLETIONS' \
     "$FOUNDRY_COMPLETIONS_DOCS"
@@ -304,9 +361,10 @@ _add_completions_block() {
   _tool="$3"
   _zsh_completion_block="$4"
   _bash_completion_block="$5"
-  _begin_marker="$6"
-  _end_marker="$7"
-  _docs_url="$8"
+  _fish_completion_block="$6"
+  _begin_marker="$7"
+  _end_marker="$8"
+  _docs_url="$9"
 
   if [ -z "$_pref_shell" ] || [ -z "$_profile" ]; then
     return
@@ -333,6 +391,9 @@ _add_completions_block() {
     ;;
   bash)
     _block="$(eval "$_bash_completion_block")"
+    ;;
+  fish)
+    _block="$(eval "$_fish_completion_block")"
     ;;
   *)
     if [ -z "$_pref_shell" ]; then
